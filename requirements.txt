@@ -1,0 +1,10 @@
+streamlit
+datetime
+pandas
+numpy
+matplotlib
+seaborn
+openpyxl
+plotly
+altair
+prophet
