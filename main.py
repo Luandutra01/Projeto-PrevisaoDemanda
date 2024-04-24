@@ -40,7 +40,7 @@ def show_login_page():
     login_button = st.button("Login")
 
     if login_button:
-        if username == "admin" and password == "admin":
+        if username == "admin" and password == "ht7fty86":
             #st.success("Login successful!")
             st.session_state['logged_in'] = True
             st.experimental_rerun()  # Re-executar o aplicativo para atualizar a tela
