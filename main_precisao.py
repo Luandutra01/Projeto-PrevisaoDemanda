@@ -223,6 +223,13 @@ def run_main_program():
             forecast_renamed = forecast_renamed.rename(columns={'ds': 'Data', 'yhat': 'Previsão média', 'yhat_lower': 'Previsão mínima', 'yhat_upper': 'Previsão máxima'})
             return forecast_renamed
 
+        @st.cache_data
+        def calcular_porcentagem_entre_min_max(prev_min, prev_max, test_data):
+            total = len(test_data)
+            dentro_intervalo = ((test_data >= prev_min) & (test_data <= prev_max)).sum()
+            percentual = dentro_intervalo / total * 100
+            return percentual
+
         
         #pegar os nomes presentes na planilha
         nomes_planilhas = ler_nomes_das_planilhas(name)
@@ -249,7 +256,7 @@ def run_main_program():
         train_data, test_data = train_test_split(selected_product)
         
         #terceiro gráfico/previsão
-        #periodo = st.slider("Intervalo a ser previsto(semanas)", 1, 24)      
+        #periodo = st.slider("Intervalo a ser previsto(semanas)", 12, 38)      
         
         prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
         #prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
@@ -265,61 +272,74 @@ def run_main_program():
         
         st.write(forecast_table)
 
-        # Redefinir os índices para garantir que estejam alinhados corretamente
-        test_data.reset_index(drop=True, inplace=True)
-        forecast_table.reset_index(drop=True, inplace=True)
-
-        st.write("Dados para teste:")
-        st.write(test_data)
-
-        st.write("Coluna previsão média")
-        st.write(forecast_table['Previsão média'])
-        st.write("Coluna dados para teste")
-        st.write(test_data['QUANT'])
-
-
-        # Calcular o Erro Médio Absoluto (MAE)
-        mae = mean_absolute_error(test_data['QUANT'], forecast_table['Previsão média'])
-        st.write("Erro Médio Absoluto (MAE):", mae)
-
-        APE = mae / test_data['QUANT'] * 100
-
-        # Calcular o Erro Percentual Absoluto Médio (MAPE)
-        MAPE = APE.mean()
-        st.write("Erro Percentual Absoluto Médio (MAPE):", MAPE, "%")
-
-        # Calcular o Root Mean Square Error (RMSE)
-        RMSE = np.sqrt(mean_squared_error(test_data['QUANT'], forecast_table['Previsão média']))
-        st.write("Raiz do Erro Quadrático Médio (RMSE):", RMSE)
-
-        # Calcular os erros
-        errors = forecast_table['Previsão média'] - test_data['QUANT']
-        st.write("Diferenças entre os valores e as previsões")
-        st.write(errors)
+        # Criar uma caixa de seleção
+        option = st.checkbox('Mostrar dados de análise de precisão')
         
-        # Plotar o histograma dos erros
-        plt.figure(figsize=(8, 6))
-        plt.hist(errors, bins=30, color='skyblue', edgecolor='black')
-        plt.title('Histograma dos Erros')
-        plt.xlabel('Erro')
-        plt.ylabel('Frequência')
-        plt.grid(True)
-        st.pyplot(plt)
-
-        #Erros em porcentagem
-        errors = (forecast_table['Previsão média'] - test_data['QUANT'])/test_data['QUANT']*100
-        st.write("Diferenças entre os valores e as previsões em porcentagem")
-        st.write(errors)
-        
-        # Plotar o histograma dos erros
-        plt.figure(figsize=(8, 6))
-        plt.hist(errors, bins=30, color='skyblue', edgecolor='black')
-        plt.title('Histograma dos Erros percentuais')
-        plt.xlabel('Erro %')
-        plt.ylabel('Frequência')
-        plt.grid(True)
-        st.pyplot(plt)
-        
+        # Verificar se a caixa de seleção está marcada
+        if option:
+            periodo = st.slider("Semanas a serem removidas", 0, 25)
+            if periodo != 0:
+                forecast_table = forecast_table[:-periodo]
+                test_data = test_data[:-periodo]
+    
+            # Redefinir os índices para garantir que estejam alinhados corretamente
+            test_data.reset_index(drop=True, inplace=True)
+            forecast_table.reset_index(drop=True, inplace=True)
+    
+            st.write("Dados para teste:")
+            st.write(test_data)
+    
+            st.write("Coluna previsão média")
+            st.write(forecast_table['Previsão média'])
+            st.write("Coluna dados para teste")
+            st.write(test_data['QUANT'])
+            
+    
+            # Calcular o Erro Médio Absoluto (MAE)
+            mae = mean_absolute_error(test_data['QUANT'], forecast_table['Previsão média'])
+            st.write("Erro Médio Absoluto (MAE):", mae)
+    
+            APE = mae / test_data['QUANT'] * 100
+    
+            # Calcular o Erro Percentual Absoluto Médio (MAPE)
+            MAPE = APE.mean()
+            st.write("Erro Percentual Absoluto Médio (MAPE):", MAPE, "%")
+    
+            # Calcular o Root Mean Square Error (RMSE)
+            RMSE = np.sqrt(mean_squared_error(test_data['QUANT'], forecast_table['Previsão média']))
+            st.write("Raiz do Erro Quadrático Médio (RMSE):", RMSE)
+    
+            #frequencia que sai dos limites
+            percentual_min_max = calcular_porcentagem_entre_min_max(forecast_table['Previsão mínima'], forecast_table['Previsão máxima'], test_data['QUANT'])
+            st.write("Porcentagem de vezes que o valor de teste está entre o mínimo e o máximo:", percentual_min_max, "%")
+    
+            # Calcular os erros
+            errors = forecast_table['Previsão média'] - test_data['QUANT']
+            st.write("Diferenças entre os valores e as previsões:")
+            st.write(errors)
+            
+            # Plotar o histograma dos erros
+            plt.figure(figsize=(8, 6))
+            plt.hist(errors, bins=30, color='skyblue', edgecolor='black')
+            plt.title('Histograma dos Erros')
+            plt.xlabel('Erro')
+            plt.ylabel('Frequência')
+            plt.grid(True)
+            st.pyplot(plt)
+    
+            #Erros em porcentagem
+            errors = (forecast_table['Previsão média'] - test_data['QUANT'])/test_data['QUANT']*100
+            st.write("Diferenças entre os valores e as previsões em porcentagem")
+            st.write(errors)
+            
+            # Plotar o histograma dos erros
+            plt.figure(figsize=(8, 6))
+            plt.hist(errors, bins=30, color='skyblue', edgecolor='black')
+            plt.title('Histograma dos Erros percentuais')
+            plt.xlabel('Erro %')
+            plt.ylabel('Frequência')
+            plt.grid(True)
+            st.pyplot(plt)
         
         #quarto gráfico 3 componentes
         generate_components_report(prof_train, forecast_train, 'Componentes', df_train, future_train)
