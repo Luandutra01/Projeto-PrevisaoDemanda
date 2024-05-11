@@ -14,8 +14,9 @@ import openpyxl
 import plotly.graph_objects as go
 from plotly.offline import iplot
 import altair as alt
-
 from io import BytesIO
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
 
 # Prophet para a predição de vendas
 from prophet import Prophet
@@ -23,6 +24,11 @@ from prophet.plot import add_changepoints_to_plot
 from prophet.plot import plot_plotly, plot_components_plotly
 
 def main():
+
+    ####Desabilitar tela de login
+    #st.session_state['logged_in'] = True
+    ####
+    
     # Verificar se o usuário está logado
     if not is_user_logged_in():
         show_login_page()
@@ -49,11 +55,13 @@ def show_login_page():
 
 def run_main_program():
     pd.options.mode.chained_assignment = None
-
-    #name = 'D:/LuanD/Dados semanais com gráficos.xlsx'
+    ######### caminho direto ou escokha
+    #name = "D:\OneDrive\Área de Trabalho\CantoDeMinas\Dados semanais com gráficos.xlsx"
     name = st.file_uploader("Escolha o arquivo Excel", type=['xlsx'])
-    print(name)
+    #########
     
+    print(name)
+    #verificar se possui um arquivo presente
     if name is not None:
     
     # Dica para resolver o problema das semanas duplicadas https://stackoverflow.com/questions/35403752/pandas-sum-over-duplicated-indices-with-sum
@@ -111,8 +119,6 @@ def run_main_program():
         def moving_average_filter(df, order):
             filtred_df = df.copy()
             filtred_df['QUANT'] = filtred_df['QUANT'].rolling(order).mean()
-            #filtred_df.dropna()
-            #filtred_df['QUANT'] = filtred_df['QUANT'].fillna(df['QUANT'][order - 1])
             return filtred_df
         
         @st.cache_data
@@ -139,11 +145,18 @@ def run_main_program():
             df = df.rename(columns={'DATA': 'ds', 'QUANT': 'y'})
             prof.fit(df)
             future = prof.make_future_dataframe(periods=periodo, freq='W')
-            #future.tail()
-        
             forecast = prof.predict(future)
-            #forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail()
             return (prof, forecast, df, future)
+
+        @st.cache_data
+        def train_test_split(df):
+            # Ordena o DataFrame pela data
+            df_sorted = df.sort_values(by='DATA')
+            # Calcula o índice para separar os dados de treinamento e teste
+            split_index = int(len(df_sorted) * 0.875)  # 87,5% para treinamento
+            train_df = df_sorted.iloc[:split_index]
+            test_df = df_sorted.iloc[split_index:]
+            return train_df, test_df
             
         @st.cache_data    
         def plot_historical_data(df, title):
@@ -152,6 +165,7 @@ def run_main_program():
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
                 #y='QUANT'
+                #valor de y fixo
                 y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
@@ -170,15 +184,24 @@ def run_main_program():
         @st.cache_data
         def generate_forecast_report(_prof, forecast, title):
             st.write(title)
-            fig1 = prof.plot(forecast)
+            fig1 = _prof.plot(forecast)
             st.pyplot(fig1)
+
+        @st.cache_data
+        def generate_forecast_report2(_prof, forecast, title):
+            st.write(title)
+            # Filtra as últimas num_semanas semanas
+            forecast_filtered = forecast.tail(39)
+            fig1 = _prof.plot(forecast_filtered)
+            st.pyplot(fig1)
+            
             
         @st.cache_data
         def generate_components_report(_prof, forecast, title, df, future):
-            prof = Prophet(weekly_seasonality=False)
-            prof.add_seasonality(name='monthly', period=30.5, fourier_order=5)
-            forecast = prof.fit(df).predict(future)
-            fig2 = prof.plot_components(forecast)
+            _prof = Prophet(weekly_seasonality=False)
+            _prof.add_seasonality(name='monthly', period=30.5, fourier_order=5)
+            forecast = _prof.fit(df).predict(future)
+            fig2 = _prof.plot_components(forecast)
             st.pyplot(fig2)
         
         @st.cache_data
@@ -199,6 +222,14 @@ def run_main_program():
             forecast_renamed = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(periodo)
             forecast_renamed = forecast_renamed.rename(columns={'ds': 'Data', 'yhat': 'Previsão média', 'yhat_lower': 'Previsão mínima', 'yhat_upper': 'Previsão máxima'})
             return forecast_renamed
+
+        @st.cache_data
+        def calcular_porcentagem_entre_min_max(prev_min, prev_max, test_data):
+            total = len(test_data)
+            dentro_intervalo = ((test_data >= prev_min) & (test_data <= prev_max)).sum()
+            percentual = dentro_intervalo / total * 100
+            return percentual
+
         
         #pegar os nomes presentes na planilha
         nomes_planilhas = ler_nomes_das_planilhas(name)
@@ -214,27 +245,107 @@ def run_main_program():
         selected_product = moving_average_filter(selected_product, ordem_filtro)
         selected_product_title = selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
         selected_product_title2 = "boxplot de " + selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
-        
+
+        #primeiro gráfico
         plot_historical_data(selected_product, selected_product_title)  
         
+        #segundo gráfico
         boxplot_historical_data(selected_product, selected_product_title2)
+
+         #dividindo dados para treino e teste
+        train_data, test_data = train_test_split(selected_product)
         
-        periodo = st.slider("Intervalo a ser previsto(semanas)", 1, 24)
+        #terceiro gráfico/previsão
+        #periodo = st.slider("Intervalo a ser previsto(semanas)", 12, 38)      
         
-        prof, forecast, df, future = create_profet_object(selected_product, periodo)
-        generate_forecast_report(prof, forecast, 'Previsão de demanda')
+        prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
+        #prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
         
-        ##########
-        forecast_table = generate_forecast_table(forecast, 'Previsão de Demanda - Tabela', periodo)
+        generate_forecast_report(prof_train, forecast_train, 'Previsão de demanda')
+                
+        prof_test, forecast_test, df_test, future_test = create_profet_object(test_data, 0)
+        generate_forecast_report2(prof_test, forecast_train, 'Previsão vs valor real')
+                 
+        #tabela previsão
+        forecast_table = generate_forecast_table(forecast_train, 'Previsão de Demanda - Tabela', 38)
+        #forecast_table = generate_forecast_table(forecast_train, 'Previsão de Demanda - Tabela', 38)
+        
         st.write(forecast_table)
-        #######
-    
+
+        # Criar uma caixa de seleção
+        option = st.checkbox('Mostrar dados de análise de precisão')
         
-        generate_components_report(prof, forecast, 'Componentes', df, future)
+        # Verificar se a caixa de seleção está marcada
+        if option:
+            periodo = st.slider("Semanas a serem removidas", 0, 25)
+            if periodo != 0:
+                forecast_table = forecast_table[:-periodo]
+                test_data = test_data[:-periodo]
     
-        fig = prof.plot_components(forecast)
+            # Redefinir os índices para garantir que estejam alinhados corretamente
+            test_data.reset_index(drop=True, inplace=True)
+            forecast_table.reset_index(drop=True, inplace=True)
+    
+            st.write("Dados para teste:")
+            st.write(test_data)
+    
+            st.write("Coluna previsão média")
+            st.write(forecast_table['Previsão média'])
+            st.write("Coluna dados para teste")
+            st.write(test_data['QUANT'])
             
-        # Removendo o terceiro subplot que mostra os dias da semana
+    
+            # Calcular o Erro Médio Absoluto (MAE)
+            mae = mean_absolute_error(test_data['QUANT'], forecast_table['Previsão média'])
+            st.write("Erro Médio Absoluto (MAE):", mae)
+    
+            APE = mae / test_data['QUANT'] * 100
+    
+            # Calcular o Erro Percentual Absoluto Médio (MAPE)
+            MAPE = APE.mean()
+            st.write("Erro Percentual Absoluto Médio (MAPE):", MAPE, "%")
+    
+            # Calcular o Root Mean Square Error (RMSE)
+            RMSE = np.sqrt(mean_squared_error(test_data['QUANT'], forecast_table['Previsão média']))
+            st.write("Raiz do Erro Quadrático Médio (RMSE):", RMSE)
+    
+            #frequencia que sai dos limites
+            percentual_min_max = calcular_porcentagem_entre_min_max(forecast_table['Previsão mínima'], forecast_table['Previsão máxima'], test_data['QUANT'])
+            st.write("Porcentagem de vezes que o valor de teste está entre o mínimo e o máximo:", percentual_min_max, "%")
+    
+            # Calcular os erros
+            errors = forecast_table['Previsão média'] - test_data['QUANT']
+            st.write("Diferenças entre os valores e as previsões:")
+            st.write(errors)
+            
+            # Plotar o histograma dos erros
+            plt.figure(figsize=(8, 6))
+            plt.hist(errors, bins=30, color='skyblue', edgecolor='black')
+            plt.title('Histograma dos Erros')
+            plt.xlabel('Erro')
+            plt.ylabel('Frequência')
+            plt.grid(True)
+            st.pyplot(plt)
+    
+            #Erros em porcentagem
+            errors = (forecast_table['Previsão média'] - test_data['QUANT'])/test_data['QUANT']*100
+            st.write("Diferenças entre os valores e as previsões em porcentagem")
+            st.write(errors)
+            
+            # Plotar o histograma dos erros
+            plt.figure(figsize=(8, 6))
+            plt.hist(errors, bins=30, color='skyblue', edgecolor='black')
+            plt.title('Histograma dos Erros percentuais')
+            plt.xlabel('Erro %')
+            plt.ylabel('Frequência')
+            plt.grid(True)
+            st.pyplot(plt)
+        
+        #quarto gráfico 3 componentes
+        generate_components_report(prof_train, forecast_train, 'Componentes', df_train, future_train)
+        
+        #adicionando o ultimo gráfico dos componentes(feriados/holidays)
+        fig = prof_train.plot_components(forecast_train)       
         fig.delaxes(fig.axes[3])
         fig.delaxes(fig.axes[2])
         fig.delaxes(fig.axes[0])
