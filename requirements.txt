@@ -8,4 +8,4 @@ openpyxl
 plotly
 altair
 prophet
-sklearn
+scikit-learn
