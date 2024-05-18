@@ -153,7 +153,7 @@ def run_main_program():
             # Ordena o DataFrame pela data
             df_sorted = df.sort_values(by='DATA')
             # Calcula o índice para separar os dados de treinamento e teste
-            split_index = int(len(df_sorted) * 0.875)  # 87,5% para treinamento
+            split_index = int(len(df_sorted) * 0.9)  # porcentagem para trenamento 0.9 = 90%
             train_df = df_sorted.iloc[:split_index]
             test_df = df_sorted.iloc[split_index:]
             return train_df, test_df
@@ -191,7 +191,7 @@ def run_main_program():
         def generate_forecast_report2(_prof, forecast, title):
             st.write(title)
             # Filtra as últimas num_semanas semanas
-            forecast_filtered = forecast.tail(39)
+            forecast_filtered = forecast.tail(30)
             fig1 = _prof.plot(forecast_filtered)
             st.pyplot(fig1)
             
@@ -258,7 +258,7 @@ def run_main_program():
         #terceiro gráfico/previsão
         #periodo = st.slider("Intervalo a ser previsto(semanas)", 12, 38)      
         
-        prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
+        prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 30)
         #prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
         
         generate_forecast_report(prof_train, forecast_train, 'Previsão de demanda')
@@ -267,7 +267,7 @@ def run_main_program():
         generate_forecast_report2(prof_test, forecast_train, 'Previsão vs valor real')
                  
         #tabela previsão
-        forecast_table = generate_forecast_table(forecast_train, 'Previsão de Demanda - Tabela', 38)
+        forecast_table = generate_forecast_table(forecast_train, 'Previsão de Demanda - Tabela', 30)
         #forecast_table = generate_forecast_table(forecast_train, 'Previsão de Demanda - Tabela', 38)
         
         st.write(forecast_table)
@@ -277,7 +277,7 @@ def run_main_program():
         
         # Verificar se a caixa de seleção está marcada
         if option:
-            periodo = st.slider("Semanas a serem removidas", 0, 25)
+            periodo = st.slider("Semanas a serem removidas", 0, 17)
             if periodo != 0:
                 forecast_table = forecast_table[:-periodo]
                 test_data = test_data[:-periodo]
@@ -314,13 +314,13 @@ def run_main_program():
             st.write("Porcentagem de vezes que o valor de teste está entre o mínimo e o máximo:", percentual_min_max, "%")
     
             # Calcular os erros
-            errors = forecast_table['Previsão média'] - test_data['QUANT']
+            errors = test_data['QUANT'] - forecast_table['Previsão média']
             st.write("Diferenças entre os valores e as previsões:")
             st.write(errors)
             
             # Plotar o histograma dos erros
             plt.figure(figsize=(8, 6))
-            plt.hist(errors, bins=30, color='skyblue', edgecolor='black')
+            plt.hist(errors, bins=6, color='skyblue', edgecolor='black')
             plt.title('Histograma dos Erros')
             plt.xlabel('Erro')
             plt.ylabel('Frequência')
@@ -328,13 +328,13 @@ def run_main_program():
             st.pyplot(plt)
     
             #Erros em porcentagem
-            errors = (forecast_table['Previsão média'] - test_data['QUANT'])/test_data['QUANT']*100
+            errors = (test_data['QUANT'] - forecast_table['Previsão média'])/test_data['QUANT']*100
             st.write("Diferenças entre os valores e as previsões em porcentagem")
             st.write(errors)
             
             # Plotar o histograma dos erros
             plt.figure(figsize=(8, 6))
-            plt.hist(errors, bins=30, color='skyblue', edgecolor='black')
+            plt.hist(errors, bins=6, color='skyblue', edgecolor='black')
             plt.title('Histograma dos Erros percentuais')
             plt.xlabel('Erro %')
             plt.ylabel('Frequência')
