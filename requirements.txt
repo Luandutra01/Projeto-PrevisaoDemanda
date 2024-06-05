@@ -9,3 +9,4 @@ plotly
 altair
 prophet
 scikit-learn
+mysql-connector-python
