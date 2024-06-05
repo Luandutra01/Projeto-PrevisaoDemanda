@@ -9,4 +9,5 @@ plotly
 altair
 prophet
 scikit-learn
+streamlit-option-menu
 mysql-connector-python
