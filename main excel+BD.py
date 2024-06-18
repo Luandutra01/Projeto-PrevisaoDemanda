@@ -31,7 +31,7 @@ st.set_page_config(layout="wide")
 def main():
 
     ####Desabilitar tela de login
-    st.session_state['logged_in'] = True
+    #st.session_state['logged_in'] = True
     ####
     
     # Verificar se o usuário está logado
