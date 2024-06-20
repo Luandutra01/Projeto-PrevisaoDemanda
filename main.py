@@ -24,13 +24,16 @@ from prophet import Prophet
 from prophet.plot import add_changepoints_to_plot
 from prophet.plot import plot_plotly, plot_components_plotly
 from streamlit_option_menu import option_menu
+import mysql.connector
+import base64
+import io 
 
 st.set_page_config(layout="wide")
 
 def main():
 
     ####Desabilitar tela de login
-    #st.session_state['logged_in'] = True
+    st.session_state['logged_in'] = True
     ####
     
     # Verificar se o usuário está logado
@@ -57,57 +60,140 @@ def show_login_page():
         else:
             st.error("Invalid username or password")
 
+@st.cache_data
+def read_sheet(name, sheet):
+        df = pd.read_excel(name, sheet, header=0)
+        df = df.rename(columns={'QUANTIDADE': 'QUANT'})
+        df = df.rename(columns={'DataInicioSemana': 'DATA'})
+        
+            
+        df['Year'] = (df['DATA']//10000)
+        df['Month'] = df['DATA'] - (df['Year'] * 10000)
+        df['Month'] = df['Month'] // 100
+        df['Day'] = df['DATA'] - ( df['Year'] * 10000 + df['Month'] * 100 )
+        
+        # Corrige algumas linhas que o dia é definido como sendo zero
+        df.loc[df['Day'] < 1,'Day'] = 1
+            
+        # Cria um indice baseado no formato ano-semana
+        df['AnoSemanaIdx'] =  df['Year'] * 100 + df['NumeroSemana']
+        df = df.set_index('AnoSemanaIdx')
+            
+        # Corrige os dados das semanas repetidas
+        df = df.groupby(df.index).agg({'NumeroSemana': 'first',
+                                        'DATA': 'first', 
+                                        'QUANT': 'sum',
+                                        'Year': 'first',
+                                        'Month': 'first',
+                                        'Day': 'first'
+                                        })
+            
+        
+        # Coloca a data no formato DateTime em vez de inteiro
+        df['DATA'] = pd.to_datetime(df[['Year','Month','Day']])
+        
+        # Corrige a semana extra no final do ano
+        
+        # 1 - Soma o valor da semana 53 na 52
+        #fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
+        #cremoso[cremoso['NumeroSemana']==52]['QUANT']  = fixedLastWeek
+        
+        fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
+        dfFixedLastWeek = fixedLastWeek.to_frame()
+        dfFixedLastWeek['anosemana'] = df[df['NumeroSemana']==52].index
+        dfFixedLastWeek.set_index('anosemana', inplace=True)
+        df.loc[df['NumeroSemana']==52,'QUANT'] = dfFixedLastWeek
+            
+        # 2 - Exclui a semana 53
+        df = df.drop(df[df['NumeroSemana']==53].index)
 
-def previsao(name):
-        @st.cache_data
-        def read_sheet(sheet):
-            df = pd.read_excel(name, sheet, header=0)
-            df = df.rename(columns={'QUANTIDADE': 'QUANT'})
-            df = df.rename(columns={'DataInicioSemana': 'DATA'})
+        return df
+
+@st.cache_data
+def ler_nomes_das_planilhas(caminho_arquivo):
+    workbook = openpyxl.load_workbook(caminho_arquivo)
         
-            
-            df['Year'] = (df['DATA']//10000)
-            df['Month'] = df['DATA'] - (df['Year'] * 10000)
-            df['Month'] = df['Month'] // 100
-            df['Day'] = df['DATA'] - ( df['Year'] * 10000 + df['Month'] * 100 )
+    # Obtém os nomes das planilhas
+    nomes_planilhas = workbook.sheetnames
         
-            # Corrige algumas linhas que o dia é definido como sendo zero
-            df.loc[df['Day'] < 1,'Day'] = 1
+    # Fecha o arquivo Excel
+    workbook.close()
             
-            # Cria um indice baseado no formato ano-semana
-            df['AnoSemanaIdx'] =  df['Year'] * 100 + df['NumeroSemana']
-            df = df.set_index('AnoSemanaIdx')
+    return nomes_planilhas
+
+@st.cache_data
+def read_table(_connection, sheet):
+    #df = pd.read_excel(name, sheet, header=0)
+    cursor = _connection.cursor()
+    cursor.execute(f"SELECT * FROM {sheet}")
+    columns = [column[0] for column in cursor.description]
+    data = cursor.fetchall()
+    cursor.close()
+    df = pd.DataFrame(data, columns=columns)
+   
+    df = df.rename(columns={'QUANTIDADE': 'QUANT'})
+    df = df.rename(columns={'DataInicioSemana': 'DATA'})
             
-            # Corrige os dados das semanas repetidas
-            df = df.groupby(df.index).agg({'NumeroSemana': 'first',
-                                           'DATA': 'first', 
-                                           'QUANT': 'sum',
-                                           'Year': 'first',
-                                           'Month': 'first',
-                                           'Day': 'first'
-                                          })
+    df['Year'] = (df['DATA']//10000)
+    df['Month'] = df['DATA'] - (df['Year'] * 10000)
+    df['Month'] = df['Month'] // 100
+    df['Day'] = df['DATA'] - ( df['Year'] * 10000 + df['Month'] * 100 )
+        
+    # Corrige algumas linhas que o dia é definido como sendo zero
+    df.loc[df['Day'] < 1,'Day'] = 1
+            
+    # Cria um indice baseado no formato ano-semana
+    df['AnoSemanaIdx'] =  df['Year'] * 100 + df['NumeroSemana']
+    df = df.set_index('AnoSemanaIdx')
+            
+    # Corrige os dados das semanas repetidas
+    df = df.groupby(df.index).agg({'NumeroSemana': 'first',
+                                    'DATA': 'first', 
+                                    'QUANT': 'sum',
+                                    'Year': 'first',
+                                    'Month': 'first',
+                                    'Day': 'first'
+                                    })
             
         
-            # Coloca a data no formato DateTime em vez de inteiro
-            df['DATA'] = pd.to_datetime(df[['Year','Month','Day']])
+    # Coloca a data no formato DateTime em vez de inteiro
+    df['DATA'] = pd.to_datetime(df[['Year','Month','Day']])
         
-            # Corrige a semana extra no final do ano
+    # Corrige a semana extra no final do ano
         
-            # 1 - Soma o valor da semana 53 na 52
-            #fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            #cremoso[cremoso['NumeroSemana']==52]['QUANT']  = fixedLastWeek
+    # 1 - Soma o valor da semana 53 na 52
+    #fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
+    #cremoso[cremoso['NumeroSemana']==52]['QUANT']  = fixedLastWeek
         
-            fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            dfFixedLastWeek = fixedLastWeek.to_frame()
-            dfFixedLastWeek['anosemana'] = df[df['NumeroSemana']==52].index
-            dfFixedLastWeek.set_index('anosemana', inplace=True)
-            df.loc[df['NumeroSemana']==52,'QUANT'] = dfFixedLastWeek
+    fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
+    dfFixedLastWeek = fixedLastWeek.to_frame()
+    dfFixedLastWeek['anosemana'] = df[df['NumeroSemana']==52].index
+    dfFixedLastWeek.set_index('anosemana', inplace=True)
+    df.loc[df['NumeroSemana']==52,'QUANT'] = dfFixedLastWeek
             
-            # 2 - Exclui a semana 53
-            df = df.drop(df[df['NumeroSemana']==53].index)
+    # 2 - Exclui a semana 53
+    df = df.drop(df[df['NumeroSemana']==53].index)
             
-            return df
-            
+    return df
+
+def get_table_names(connection):
+    cursor = connection.cursor()
+    cursor.execute("SHOW TABLES")
+    tables = cursor.fetchall()
+    table_names = [table[0] for table in tables]
+    return table_names
+
+def connect_to_mysql(user, password, host, database):
+    try:
+        connection = mysql.connector.connect(user=user, password=password,
+                                            host=host,
+                                            database=database)
+        return connection
+    except mysql.connector.Error as error:
+        print("Erro ao conectar ao banco de dados MySQL:", error)
+        return None
+
+def previsao(df, name, selected_graficos):       
         @st.cache_data
         def moving_average_filter(df, order):
             filtred_df = df.copy()
@@ -173,36 +259,37 @@ def previsao(name):
             st.pyplot(fig2)
         
         @st.cache_data
-        def ler_nomes_das_planilhas(caminho_arquivo):
-            workbook = openpyxl.load_workbook(caminho_arquivo)
-        
-            # Obtém os nomes das planilhas
-            nomes_planilhas = workbook.sheetnames
-        
-            # Fecha o arquivo Excel
-            workbook.close()
-            
-            return nomes_planilhas
-        
-        @st.cache_data
         def generate_forecast_table(forecast, title, periodo):
             st.write(title)
             forecast_renamed = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(periodo)
             forecast_renamed = forecast_renamed.rename(columns={'ds': 'Data', 'yhat': 'Previsão média', 'yhat_lower': 'Previsão mínima', 'yhat_upper': 'Previsão máxima'})
             return forecast_renamed
-        
-        #pegar os nomes presentes na planilha
-        nomes_planilhas = ler_nomes_das_planilhas(name)
-        
-        # Obtenção dos dados da interface do streamlit
-        st.title("Previsão de demanda")
-        graficos = nomes_planilhas
-        selected_graficos = st.selectbox("Produtos:", graficos)
-        ordem_filtro = st.slider("Ordem do filtro (semanas)", 1, 52)
-        periodo = st.slider("Intervalo a ser previsto(semanas)", 1, 24)
+
+        def download_link_excel(df, filename):
+            # Salvar o DataFrame em um arquivo Excel temporário
+            temp_file = f"{filename}.xlsx"
+            df.to_excel(temp_file, index=False)
+            
+            # Ler o arquivo Excel em bytes
+            with open(temp_file, 'rb') as f:
+                excel_data = f.read()
+            
+            # Excluir o arquivo temporário
+            import os
+            os.remove(temp_file)
+            
+            # Codificar em base64
+            b64 = base64.b64encode(excel_data).decode()
+            href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="{filename}.xlsx">Baixar tabela para o excel</a>'
+            return href
+
+        st.title('Previsão de demanda')
+        with st.sidebar:
+            ordem_filtro = st.slider("Ordem do filtro (semanas)", 1, 52)
+            periodo = st.slider("Intervalo a ser previsto(semanas)", 1, 24)
         
         #Utilização dos dados do streamlit para a execução
-        selected_product = read_sheet(selected_graficos)
+        selected_product = df
         selected_product = moving_average_filter(selected_product, ordem_filtro)
         selected_product_title = selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
         selected_product_title2 = "boxplot de " + selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
@@ -232,58 +319,10 @@ def previsao(name):
             
         forecast_table = generate_forecast_table(forecast, 'Previsão de Demanda - Tabela', periodo)
         st.write(forecast_table)
+        st.markdown(download_link_excel(forecast_table, 'forecast'), unsafe_allow_html=True)
 
 
-def boxplot(name):
-        @st.cache_data
-        def read_sheet(sheet):
-            df = pd.read_excel(name, sheet, header=0)
-            df = df.rename(columns={'QUANTIDADE': 'QUANT'})
-            df = df.rename(columns={'DataInicioSemana': 'DATA'})
-        
-            
-            df['Year'] = (df['DATA']//10000)
-            df['Month'] = df['DATA'] - (df['Year'] * 10000)
-            df['Month'] = df['Month'] // 100
-            df['Day'] = df['DATA'] - ( df['Year'] * 10000 + df['Month'] * 100 )
-        
-            # Corrige algumas linhas que o dia é definido como sendo zero
-            df.loc[df['Day'] < 1,'Day'] = 1
-            
-            # Cria um indice baseado no formato ano-semana
-            df['AnoSemanaIdx'] =  df['Year'] * 100 + df['NumeroSemana']
-            df = df.set_index('AnoSemanaIdx')
-            
-            # Corrige os dados das semanas repetidas
-            df = df.groupby(df.index).agg({'NumeroSemana': 'first',
-                                           'DATA': 'first', 
-                                           'QUANT': 'sum',
-                                           'Year': 'first',
-                                           'Month': 'first',
-                                           'Day': 'first'
-                                          })
-            
-        
-            # Coloca a data no formato DateTime em vez de inteiro
-            df['DATA'] = pd.to_datetime(df[['Year','Month','Day']])
-        
-            # Corrige a semana extra no final do ano
-        
-            # 1 - Soma o valor da semana 53 na 52
-            #fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            #cremoso[cremoso['NumeroSemana']==52]['QUANT']  = fixedLastWeek
-        
-            fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            dfFixedLastWeek = fixedLastWeek.to_frame()
-            dfFixedLastWeek['anosemana'] = df[df['NumeroSemana']==52].index
-            dfFixedLastWeek.set_index('anosemana', inplace=True)
-            df.loc[df['NumeroSemana']==52,'QUANT'] = dfFixedLastWeek
-            
-            # 2 - Exclui a semana 53
-            df = df.drop(df[df['NumeroSemana']==53].index)
-            
-            return df
-            
+def boxplot(df, name, selected_graficos):
         @st.cache_data
         def moving_average_filter(df, order):
             filtred_df = df.copy()
@@ -313,35 +352,19 @@ def boxplot(name):
             plt.xticks(rotation=45)
             st.pyplot(fig)
 
-        
-        @st.cache_data
-        def ler_nomes_das_planilhas(caminho_arquivo):
-            workbook = openpyxl.load_workbook(caminho_arquivo)
-        
-            # Obtém os nomes das planilhas
-            nomes_planilhas = workbook.sheetnames
-        
-            # Fecha o arquivo Excel
-            workbook.close()
-            
-            return nomes_planilhas
-            
-        #pegar os nomes presentes na planilha
-        nomes_planilhas = ler_nomes_das_planilhas(name)
+
         
         # Obtenção dos dados da interface do streamlit
         st.title("Boxplot")
-        graficos = nomes_planilhas
-        selected_graficos = st.selectbox("Produtos:", graficos)
-
 
         #primeiro gráfico
-        ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52)
+        with st.sidebar:
+            ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52)
 
         col1, col2 = st.columns(2)
         
         #Utilização dos dados do streamlit para a execução
-        selected_product = read_sheet(selected_graficos)
+        selected_product = df
         selected_product = moving_average_filter(selected_product, ordem_filtro)
         selected_product_title = selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
         selected_product_title2 = "boxplot de " + selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
@@ -353,7 +376,7 @@ def boxplot(name):
         with col2:
             boxplot_historical_data(selected_product, selected_product_title2)
 
-def analise(name):
+def analise(df, name, selected_graficos):
         @st.cache_data
         def read_sheet(sheet):
             df = pd.read_excel(name, sheet, header=0)
@@ -442,9 +465,12 @@ def analise(name):
             df_sorted = df.sort_values(by='DATA')
             # Calcula o índice para separar os dados de treinamento e teste
             split_index = int(len(df_sorted) * 0.95)  # porcentagem para treinamento 0.9 = 90%
+            
+            tamanhoPrevisao = int(len(df_sorted) * 0.05)
+            
             train_df = df_sorted.iloc[:split_index]
             test_df = df_sorted.iloc[split_index:]
-            return train_df, test_df
+            return train_df, test_df, tamanhoPrevisao
             
         @st.cache_data    
         def plot_historical_data(df, title):
@@ -476,10 +502,11 @@ def analise(name):
             st.pyplot(fig1)
 
         @st.cache_data
-        def generate_forecast_report2(_prof, forecast, title):
+        def generate_forecast_report2(_prof, forecast, title, tamanhoPrevisao):
+            #tamanhoPrevisao += 1
             st.write(title)
             # Filtra as últimas num_semanas semanas
-            forecast_filtered = forecast.tail(15)
+            forecast_filtered = forecast.tail(tamanhoPrevisao)
             fig1 = _prof.plot(forecast_filtered)
             st.pyplot(fig1)
             
@@ -610,20 +637,16 @@ def analise(name):
             with col2: 
                 st.pyplot(plt)
 
-        
-        #pegar os nomes presentes na planilha
-        nomes_planilhas = ler_nomes_das_planilhas(name)
-        
+
         # Obtenção dos dados da interface do streamlit
         st.title("Medidas de análise de precisão")
-        graficos = nomes_planilhas
-        selected_graficos = st.selectbox("Produtos:", graficos)
-        ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52)
+        with st.sidebar:
+            ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52)
 
         col1, col2 = st.columns(2)
 
         ##grafico sem média móvel
-        selected_productS = read_sheet(selected_graficos)
+        selected_productS = df
         selected_productS = moving_average_filter(selected_productS, 1)
         selected_product_titleS = selected_graficos + " - Ordem do Filtro: " + str(1) + " (semanas)"
         with col1:
@@ -633,7 +656,7 @@ def analise(name):
         #primeiro gráfico
         
         #Utilização dos dados do streamlit para a execução
-        selected_product = read_sheet(selected_graficos)
+        selected_product = df
         selected_product = moving_average_filter(selected_product, ordem_filtro)
         selected_product_title = selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
         selected_product_title2 = "boxplot de " + selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
@@ -645,12 +668,13 @@ def analise(name):
         #boxplot_historical_data(selected_product, selected_product_title2)
 
         #dividindo dados para treino e teste
-        train_data, test_data = train_test_split(selected_product)
+        train_data, test_data, tamanhoPrevisao = train_test_split(selected_product)
+        tamanhoPrevisao += 1
         
         #terceiro gráfico/previsão
         #periodo = st.slider("Intervalo a ser previsto(semanas)", 12, 38)      
         
-        prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 15)
+        prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, tamanhoPrevisao)
         #prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
     
         
@@ -659,19 +683,16 @@ def analise(name):
             generate_forecast_report(prof_train, forecast_train, 'Previsão de demanda')
         with col2:     
             prof_test, forecast_test, df_test, future_test = create_profet_object(test_data, 0)
-            generate_forecast_report2(prof_test, forecast_train, 'Previsão vs valor')
+            generate_forecast_report2(prof_test, forecast_train, 'Previsão vs valor', tamanhoPrevisao)
                      
             #tabela previsão
-            forecast_table = generate_forecast_table(forecast_train, 15)
+            forecast_table = generate_forecast_table(forecast_train, tamanhoPrevisao)
             #forecast_table = generate_forecast_table(forecast_train, 'Previsão de Demanda - Tabela', 38)
         with col3:
             #dividindo dados para treino e teste
-            train_dataS, test_dataS = train_test_split(selected_productS)
+            train_dataS, test_dataS, tamanhoPrevisao = train_test_split(selected_productS)
             prof_testS, forecast_testS, df_testS, future_testS = create_profet_object(test_dataS, 0)
-            generate_forecast_report2(prof_testS, forecast_train, 'VS Previsão sem média móvel')
-
-    
-           
+            generate_forecast_report2(prof_testS, forecast_train, 'VS Previsão sem média móvel', tamanhoPrevisao)           
                 
            
 
@@ -713,10 +734,10 @@ def analise(name):
             if option3:
                 ############ Em relação a sem média móvel
                 st.write('Em relação ao dado sem média móvel')
-                selected_product = read_sheet(selected_graficos)
+                selected_product = df
                 selected_product = moving_average_filter(selected_product, 1)
                 selected_product_title = selected_graficos + " - Ordem do Filtro: " + str(1) + " (semanas)"
-                train_data, test_data = train_test_split(selected_product)
+                train_data, test_data, tamanhoPrevisao = train_test_split(selected_product)
                 test_data.reset_index(drop=True, inplace=True)
                 
                 if option2:
@@ -732,13 +753,46 @@ def run_main_program():
     pd.options.mode.chained_assignment = None
     ######### caminho direto ou escokha
     #name = "D:\OneDrive\Área de Trabalho\CantoDeMinas\Dados semanais com gráficos.xlsx"
-    name = st.file_uploader("Escolha o arquivo Excel", type=['xlsx'])
-    #########
-    
-    print(name)
+
+    menu = '0'
+    with st.sidebar:
+        database = st.checkbox('Utilizar banco de dados')
+        
+    if database:
+        user = 'luan'
+        password = 'luan'
+        host = 'localhost'
+        database = 'cantodeminas'
+        connection = connect_to_mysql(user, password, host, database)
+
+        
+        # Obter nomes das tabelas
+        name = get_table_names(connection)
+        
+        # Usar os nomes das tabelas para seleção
+        with st.sidebar:
+            selected_graficos = st.selectbox("Tabela:", name)
+        df = read_table(connection, selected_graficos)
+                       
+        menu = '1'
+        if connection is None:
+            st.error("Não foi possível conectar ao banco de dados MySQL. Verifique as credenciais.")
+            return
+    if not database:
+        name = st.file_uploader("Escolha o arquivo Excel", type=['xlsx'])
+
     #verificar se possui um arquivo presente
     if name is not None:
         # Criação do menu lateral
+        # Obtenção dos dados da interface do streamlit
+        if not database:
+            with st.sidebar:
+                selected_graficos = st.selectbox("Produtos:", ler_nomes_das_planilhas(name))
+                
+            df = read_sheet(name, selected_graficos)
+            menu = '1'
+
+    if menu=='1':
         with st.sidebar:
             selecao = option_menu(
                 "Menu",
@@ -747,14 +801,14 @@ def run_main_program():
                 menu_icon="cast",
                 default_index=0,
             )
-        
+            
         # Conteúdo da página principal baseado na seleção do menu
         if selecao == 'Previsão':
-            previsao(name)
+            previsao(df, name, selected_graficos)
         elif selecao == 'Boxplot':
-            boxplot(name)
+            boxplot(df, name, selected_graficos)
         elif selecao == 'Medidas de análise de precisão':
-            analise(name)
+            analise(df, name, selected_graficos)
             
             
 if __name__ == "__main__":
