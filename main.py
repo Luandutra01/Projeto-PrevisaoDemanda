@@ -39,7 +39,7 @@ st.set_page_config(layout="wide")
 def main():
 
     ####Desabilitar tela de login
-    #st.session_state['logged_in'] = True
+    st.session_state['logged_in'] = True
     ####
     
     # Verificar se o usuário está logado
@@ -696,7 +696,7 @@ def analise(df, name, selected_graficos):
             prof_test, forecast_test, df_test, future_test = create_profet_object(test_data, 0)
             generate_forecast_report2(prof_test, forecast_train, 'Previsão vs valor', tamanhoPrevisao)
                      
-            #tabela previsão
+            ##tabela previsão
             forecast_table = generate_forecast_table(forecast_train, tamanhoPrevisao)
             #forecast_table = generate_forecast_table(forecast_train, 'Previsão de Demanda - Tabela', 38)
         with col3:
@@ -1282,8 +1282,6 @@ def analiseNeural(df, name, selected_graficos):
             st.pyplot(fig)
         with col2:     
             prof_test, forecast_test, df_test, future_test, fig = create_profet_object(test_data, 1)
-            #generate_forecast_report2(prof_test, forecast_train, 'Previsão vs valor', tamanhoPrevisao)
-            
             #st.pyplot(fig)
             
             #tabela previsão
@@ -1360,7 +1358,7 @@ def previsaoArima(df, name, selected_graficos):
             return filtred_df
         
         @st.cache_data
-        def create_profet_object(df, periodo, p, d):
+        def create_profet_object(df, periodo, p, d, q):
             price_increase = pd.DataFrame({
               'holiday': 'price_increase',
               'ds': pd.to_datetime(['2018-01-01', '2018-04-01', '2018-11-01',
@@ -1394,7 +1392,7 @@ def previsaoArima(df, name, selected_graficos):
 
             
             # Ajusta o modelo ARIMA
-            prof = ARIMA(df['y'], order=(p, d, 0))  # Componente MA definido como 0
+            prof = ARIMA(df['y'], order=(p, d, q))  # Componente MA definido como 0
             prof_fit = prof.fit()
         
             # Cria um DataFrame com datas futuras para previsão
@@ -1479,6 +1477,7 @@ def previsaoArima(df, name, selected_graficos):
             periodo = st.slider("Intervalo a ser previsto(semanas)", 1, 24, 12)
             p = st.slider('Parâmetro p (AutoRegressivo)', 0, 9, 1)     
             d = st.slider('Parâmetro d (Integração)', 0, 2, 1)
+            q = st.slider('Parâmetro q (Média móvel)', 0, 25, 1)
         
         #Utilização dos dados do streamlit para a execução
         selected_product = df
@@ -1490,7 +1489,7 @@ def previsaoArima(df, name, selected_graficos):
             plot_historical_data(selected_product, selected_product_title)  
             
             
-            prof, forecast, df, future, fig, future_dates = create_profet_object(selected_product, periodo, p, d)
+            prof, forecast, df, future, fig, future_dates = create_profet_object(selected_product, periodo, p, d, q)
             st.write(fig)
             #generate_forecast_report(prof, forecast, 'Previsão de demanda')
             
@@ -1574,7 +1573,7 @@ def analiseArima(df, name, selected_graficos):
             return filtred_df
         
         @st.cache_data
-        def create_profet_object(df, periodo, p, d):
+        def create_profet_object(df, periodo, p, d, q):
             price_increase = pd.DataFrame({
               'holiday': 'price_increase',
               'ds': pd.to_datetime(['2018-01-01', '2018-04-01', '2018-11-01',
@@ -1608,7 +1607,7 @@ def analiseArima(df, name, selected_graficos):
 
             
             # Ajusta o modelo ARIMA
-            prof = ARIMA(df['y'], order=(p, d, 0))  # Componente MA definido como 0
+            prof = ARIMA(df['y'], order=(p, d, q))  # Componente MA definido como 0
             prof_fit = prof.fit()
         
             # Cria um DataFrame com datas futuras para previsão
@@ -1817,6 +1816,8 @@ def analiseArima(df, name, selected_graficos):
             ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52)
             p = st.slider('Parâmetro p (AutoRegressivo)', 0, 9, 1)     
             d = st.slider('Parâmetro d (Integração)', 0, 2, 1)
+            q = st.slider('Parâmetro q (Média móvel)', 0, 25, 1)
+            
 
         col1, col2 = st.columns(2)
 
@@ -1851,7 +1852,7 @@ def analiseArima(df, name, selected_graficos):
         #terceiro gráfico/previsão
         #periodo = st.slider("Intervalo a ser previsto(semanas)", 12, 38)      
         
-        prof_train, forecast_train, df_train, future_train, fig, future_dates = create_profet_object(train_data, tamanhoPrevisao, p, d)
+        prof_train, forecast_train, df_train, future_train, fig, future_dates = create_profet_object(train_data, tamanhoPrevisao, p, d, q)
         #prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
         forecast_train = forecast_train.iloc[1:]
 
@@ -1862,7 +1863,8 @@ def analiseArima(df, name, selected_graficos):
             #generate_forecast_report(prof_train, forecast_train, 'Previsão de demanda')
             st.pyplot(fig)
         with col2:     
-            prof_test, forecast_test, df_test, future_test, fig, future_dates = create_profet_object(test_data, 1, p, d)
+            prof_test, forecast_test, df_test, future_test, fig, future_dates = create_profet_object(test_data, 1, p, d, q)
+            st.pyplot(fig)
             #generate_forecast_report2(prof_test, forecast_train, 'Previsão vs valor', tamanhoPrevisao)
             
             #st.pyplot(fig)
