@@ -1475,7 +1475,7 @@ def previsaoArima(df, name, selected_graficos):
         with st.sidebar:
             ordem_filtro = st.slider("Ordem do filtro (semanas)", 1, 52)
             periodo = st.slider("Intervalo a ser previsto(semanas)", 1, 24, 12)
-            p = st.slider('Parâmetro p (AutoRegressivo)', 0, 9, 1)     
+            p = st.slider('Parâmetro p (AutoRegressivo)', 0, 20, 1)     
             d = st.slider('Parâmetro d (Integração)', 0, 2, 1)
             q = st.slider('Parâmetro q (Média móvel)', 0, 25, 1)
         
@@ -1814,7 +1814,7 @@ def analiseArima(df, name, selected_graficos):
         st.title("Medidas de análise de precisão")
         with st.sidebar:
             ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52)
-            p = st.slider('Parâmetro p (AutoRegressivo)', 0, 9, 1)     
+            p = st.slider('Parâmetro p (AutoRegressivo)', 0, 20, 1)     
             d = st.slider('Parâmetro d (Integração)', 0, 2, 1)
             q = st.slider('Parâmetro q (Média móvel)', 0, 25, 1)
             
@@ -1858,13 +1858,13 @@ def analiseArima(df, name, selected_graficos):
 
         
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         with col1:
             #generate_forecast_report(prof_train, forecast_train, 'Previsão de demanda')
             st.pyplot(fig)
-        with col2:     
-            prof_test, forecast_test, df_test, future_test, fig, future_dates = create_profet_object(test_data, 1, p, d, q)
-            st.pyplot(fig)
+        #with col2:     
+            #prof_test, forecast_test, df_test, future_test, fig, future_dates = create_profet_object(test_data, 1, p, d, q)
+            #st.pyplot(fig)
             #generate_forecast_report2(prof_test, forecast_train, 'Previsão vs valor', tamanhoPrevisao)
             
             #st.pyplot(fig)
