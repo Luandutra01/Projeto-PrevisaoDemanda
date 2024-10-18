@@ -1966,7 +1966,7 @@ def run_main_program():
             return
     if not database:
         #name = st.file_uploader("Escolha o arquivo Excel", type=['xlsx'])
-        name = "Dados semanais com gráficos.xlsx"
+        name = "dadosSIN.xlsx"
 
     #verificar se possui um arquivo presente
     if name is not None:
