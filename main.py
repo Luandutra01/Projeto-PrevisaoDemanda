@@ -787,9 +787,9 @@ def previsaoNeural(df, name, selected_graficos):
             
             df = df.rename(columns={'DATA': 'ds', 'QUANT': 'y'})
             duplicate_ds = df[df.duplicated(subset=['ds'], keep=False)]
-            if not duplicate_ds.empty:
-                st.write("Duplicatas encontradas na coluna 'ds', só a primeira foi mantida:")
-                st.write(duplicate_ds)
+            #if not duplicate_ds.empty:
+                #st.write("Duplicatas encontradas na coluna 'ds', só a primeira foi mantida:")
+                #st.write(duplicate_ds)
             df = df.drop_duplicates(subset=['ds'], keep='first')
             # Seleção das colunas 'ds' e 'y'
             df = df.loc[:, ['ds', 'y']]
