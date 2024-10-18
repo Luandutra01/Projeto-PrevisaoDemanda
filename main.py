@@ -1937,7 +1937,7 @@ def analiseArima(df, name, selected_graficos):
 
 def run_main_program():
     pd.options.mode.chained_assignment = None
-    ######### caminho direto ou escokha
+    ######### caminho direto ou escolha
     #name = "D:\OneDrive\Área de Trabalho\CantoDeMinas\Dados semanais com gráficos.xlsx"
 
     menu = '0'
@@ -1966,6 +1966,7 @@ def run_main_program():
             return
     if not database:
         name = st.file_uploader("Escolha o arquivo Excel", type=['xlsx'])
+        #name = "D:\OneDrive\Área de Trabalho\CantoDeMinas\Dados semanais com gráficos.xlsx"
 
     #verificar se possui um arquivo presente
     if name is not None:
