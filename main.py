@@ -248,7 +248,7 @@ def previsao(df, name, selected_graficos):
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
                 #y='QUANT'
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y=alt.Y('QUANT', scale=alt.Scale(]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -347,7 +347,7 @@ def boxplot(df, name, selected_graficos):
                 x='DATA',
                 #y='QUANT'
                 #valor de y fixo
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y=alt.Y('QUANT', scale=alt.Scale())
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -491,7 +491,7 @@ def analise(df, name, selected_graficos):
                 x='DATA',
                 #y='QUANT'
                 #valor de y fixo
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y=alt.Y('QUANT', scale=alt.Scale())
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -842,7 +842,7 @@ def previsaoNeural(df, name, selected_graficos):
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
                 #y='QUANT'
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y=alt.Y('QUANT', scale=alt.Scale())
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -1077,7 +1077,7 @@ def analiseNeural(df, name, selected_graficos):
                 x='DATA',
                 #y='QUANT'
                 #valor de y fixo
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y=alt.Y('QUANT', scale=alt.Scale())
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -1425,7 +1425,7 @@ def previsaoArima(df, name, selected_graficos):
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
                 #y='QUANT'
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y=alt.Y('QUANT', scale=alt.Scale())
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -1655,7 +1655,7 @@ def analiseArima(df, name, selected_graficos):
                 x='DATA',
                 #y='QUANT'
                 #valor de y fixo
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y=alt.Y('QUANT', scale=alt.Scale())
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
