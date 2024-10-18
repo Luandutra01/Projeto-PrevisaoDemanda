@@ -1965,8 +1965,8 @@ def run_main_program():
             st.error("Não foi possível conectar ao banco de dados MySQL. Verifique as credenciais.")
             return
     if not database:
-        name = st.file_uploader("Escolha o arquivo Excel", type=['xlsx'])
-        #name = "D:\OneDrive\Área de Trabalho\CantoDeMinas\Dados semanais com gráficos.xlsx"
+        #name = st.file_uploader("Escolha o arquivo Excel", type=['xlsx'])
+        name = "Dados semanais com gráficos.xlsx"
 
     #verificar se possui um arquivo presente
     if name is not None:
