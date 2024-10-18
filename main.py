@@ -248,7 +248,7 @@ def previsao(df, name, selected_graficos):
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
                 #y='QUANT'
-                y=alt.Y('QUANT', scale=alt.Scale(]))
+                y=alt.Y('QUANT', scale=alt.Scale())
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
