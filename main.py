@@ -1282,19 +1282,51 @@ def analiseNeural(df, name, selected_graficos):
             st.pyplot(fig)
         with col2:     
             prof_test, forecast_test, df_test, future_test, fig = create_profet_object(test_data, 1)
-            #st.pyplot(fig)
+
+            # Criar o gráfico
+            fig, ax = plt.subplots(figsize=(10, 6))
             
-            #tabela previsão
-            #forecast_table = generate_forecast_table(forecast_train, tamanhoPrevisao)
+            # Plotar a linha de previsão
+            ax.plot(test_data['DATA'], forecast_train['yhat1'], color='orange', linestyle='--', label='Previsão')
+            
+            # Plotar a linha de dados reais
+            ax.plot(test_data['DATA'], test_data['QUANT'], color='blue', label='Real')
+            
+            # Adicionar títulos e legendas
+            ax.set_title('Previsão vs Real')
+            ax.set_xlabel('Data')
+            ax.set_ylabel('Quantidade')
+            ax.legend()
+            
+            # Exibir o gráfico no Streamlit
+            st.pyplot(fig)
+
             
             
-        #with col3:
+        with col3:
             #dividindo dados para treino e teste
-            #train_dataS, test_dataS, tamanhoPrevisao = train_test_split(selected_productS)
-            #prof_testS, forecast_testS, df_testS, future_testS, fig = create_profet_object(test_dataS, 1)
-            #generate_forecast_report2(prof_testS, forecast_train, 'VS Previsão sem média móvel', tamanhoPrevisao) 
-    
-            #st.pyplot(fig)
+            train_dataS, test_dataS, tamanhoPrevisao = train_test_split(selected_productS)
+            prof_testS, forecast_testS, df_testS, future_testS, fig = create_profet_object(test_dataS, 1)
+
+            prof_test, forecast_test, df_test, future_test, fig = create_profet_object(test_data, 1)
+
+            # Criar o gráfico
+            fig, ax = plt.subplots(figsize=(10, 6))
+            
+            # Plotar a linha de previsão
+            ax.plot(test_dataS['DATA'], forecast_train['yhat1'], color='orange', linestyle='--', label='Previsão')
+            
+            # Plotar a linha de dados reais
+            ax.plot(test_dataS['DATA'], test_dataS['QUANT'], color='blue', label='Real')
+            
+            # Adicionar títulos e legendas
+            ax.set_title('Previsão vs Real (sem média móvel)')
+            ax.set_xlabel('Data')
+            ax.set_ylabel('Quantidade')
+            ax.legend()
+            
+            # Exibir o gráfico no Streamlit
+            st.pyplot(fig)
                 
            
         option2 = st.checkbox('Mostrar detalhes dos gráficos')
@@ -1329,6 +1361,7 @@ def analiseNeural(df, name, selected_graficos):
                 st.write(forecast_train['yhat1'])
                 st.write("Coluna dados para teste")
                 st.write(test_data['QUANT'])
+                #test_data['DATA'] para o eixo x, e plotar forecast_train['yhat1'] como uma linha azul com legenda de previsão, e no mesmo gráfico plotar test_data['QUANT']
 
             option3 = st.checkbox('Mostrar em relação aos dados sem média móvel')
             if option3:
