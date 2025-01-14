@@ -34,7 +34,7 @@ from neuralprophet import NeuralProphet
 ###
 from statsmodels.tsa.arima.model import ARIMA
 
-#st.set_page_config(layout="wide")
+st.set_page_config(layout="wide")
 
 def main():
 
