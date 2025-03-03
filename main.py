@@ -247,8 +247,8 @@ def previsao(df, name, selected_graficos):
             #st.line_chart(df.set_index('DATA'))
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
-                #y='QUANT'
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y='QUANT'
+                #y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -345,9 +345,9 @@ def boxplot(df, name, selected_graficos):
             #st.line_chart(df.set_index('DATA'))
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
-                #y='QUANT'
+                y='QUANT'
                 #valor de y fixo
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                #y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -489,9 +489,9 @@ def analise(df, name, selected_graficos):
             #st.line_chart(df.set_index('DATA'))
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
-                #y='QUANT'
+                y='QUANT'
                 #valor de y fixo
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                #y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -841,8 +841,8 @@ def previsaoNeural(df, name, selected_graficos):
             #st.line_chart(df.set_index('DATA'))
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
-                #y='QUANT'
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y='QUANT'
+                #y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -1075,9 +1075,9 @@ def analiseNeural(df, name, selected_graficos):
             #st.line_chart(df.set_index('DATA'))
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
-                #y='QUANT'
+                y='QUANT'
                 #valor de y fixo
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                #y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -1457,8 +1457,8 @@ def previsaoArima(df, name, selected_graficos):
             #st.line_chart(df.set_index('DATA'))
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
-                #y='QUANT'
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                y='QUANT'
+                #y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -1686,9 +1686,9 @@ def analiseArima(df, name, selected_graficos):
             #st.line_chart(df.set_index('DATA'))
             chart = alt.Chart(df.reset_index()).mark_line().encode(
                 x='DATA',
-                #y='QUANT'
+                y='QUANT'
                 #valor de y fixo
-                y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
+                #y=alt.Y('QUANT', scale=alt.Scale(domain=[0, 200000]))
             ).interactive()
             st.altair_chart(chart, use_container_width=True)
             
@@ -2041,6 +2041,22 @@ def run_main_program():
                 selected_graficos = st.selectbox("Produtos:", ler_nomes_das_planilhas(name))
                 
             df = read_sheet(name, selected_graficos)
+        
+            # Sliders para escolher a porcentagem de dados a remover
+            remove_start = st.slider("Apagar dados do início (%)", 0, 100, 0)
+            remove_end = st.slider("Apagar dados do fim (%)", 0, 100, 0)
+
+            # Convertendo porcentagens para número de linhas
+            rows_to_remove_start = int(len(df) * (remove_start / 100))
+            rows_to_remove_end = int(len(df) * (remove_end / 100))
+
+            # Garantindo que a remoção não exceda o total de linhas disponíveis
+            if rows_to_remove_start + rows_to_remove_end >= len(df):
+                st.warning("A remoção total excede o número de linhas disponíveis. Ajuste os sliders.")
+                df_filtered = pd.DataFrame()  # Retorna um DataFrame vazio
+            else:
+                df_filtered = df.iloc[rows_to_remove_start: len(df) - rows_to_remove_end].copy()
+            
             menu = '1'
 
     if menu=='1':
@@ -2052,22 +2068,23 @@ def run_main_program():
                 menu_icon="cast",
                 default_index=0,
             )
-            
+        
+        
         # Conteúdo da página principal baseado na seleção do menu
         if selecao == 'Previsão Prophet':
-            previsao(df, name, selected_graficos)
+            previsao(df_filtered, name, selected_graficos)
         elif selecao == 'Boxplot':
-            boxplot(df, name, selected_graficos)
+            boxplot(df_filtered, name, selected_graficos)
         elif selecao == 'Análise Prophet':
-            analise(df, name, selected_graficos)
+            analise(df_filtered, name, selected_graficos)
         elif selecao == 'Previsão NeuralProphet':
-            previsaoNeural(df, name, selected_graficos)
+            previsaoNeural(df_filtered, name, selected_graficos)
         elif selecao == 'Análise NeuralProphet':
-            analiseNeural(df, name, selected_graficos)
+            analiseNeural(df_filtered, name, selected_graficos)
         elif selecao == 'Previsão Arima':
-            previsaoArima(df, name, selected_graficos)
+            previsaoArima(df_filtered, name, selected_graficos)
         elif selecao == 'Análise Arima':
-            analiseArima(df, name, selected_graficos)
+            analiseArima(df_filtered, name, selected_graficos)
             
             
 if __name__ == "__main__":
