@@ -39,7 +39,7 @@ st.set_page_config(layout="wide")
 def main():
 
     ####Desabilitar tela de login
-    #st.session_state['logged_in'] = True
+    st.session_state['logged_in'] = True
     ####
     
     # Verificar se o usuário está logado
@@ -2042,23 +2042,24 @@ def run_main_program():
                 
             df = read_sheet(name, selected_graficos)
         
-            # Sliders para escolher a porcentagem de dados a remover
-            remove_start = st.slider("Apagar dados do início (%)", 0, 100, 0)
-            remove_end = st.slider("Apagar dados do fim (%)", 0, 100, 0)
-
-            # Convertendo porcentagens para número de linhas
-            rows_to_remove_start = int(len(df) * (remove_start / 100))
-            rows_to_remove_end = int(len(df) * (remove_end / 100))
-
-            # Garantindo que a remoção não exceda o total de linhas disponíveis
-            if rows_to_remove_start + rows_to_remove_end >= len(df):
-                st.warning("A remoção total excede o número de linhas disponíveis. Ajuste os sliders.")
-                df_filtered = pd.DataFrame()  # Retorna um DataFrame vazio
-            else:
-                df_filtered = df.iloc[rows_to_remove_start: len(df) - rows_to_remove_end].copy()
+            
             
             menu = '1'
+        # Sliders para escolher a porcentagem de dados a remover
+        remove_start = st.slider("Apagar dados do início (%)", 0, 100, 0)
+        remove_end = st.slider("Apagar dados do fim (%)", 0, 100, 0)
 
+        # Convertendo porcentagens para número de linhas
+        rows_to_remove_start = int(len(df) * (remove_start / 100))
+        rows_to_remove_end = int(len(df) * (remove_end / 100))
+
+        # Garantindo que a remoção não exceda o total de linhas disponíveis
+        if rows_to_remove_start + rows_to_remove_end >= len(df):
+            st.warning("A remoção total excede o número de linhas disponíveis. Ajuste os sliders.")
+            df_filtered = pd.DataFrame()  # Retorna um DataFrame vazio
+        else:
+            df_filtered = df.iloc[rows_to_remove_start: len(df) - rows_to_remove_end].copy()
+        
     if menu=='1':
         with st.sidebar:
             selecao = option_menu(
