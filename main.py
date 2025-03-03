@@ -39,7 +39,7 @@ st.set_page_config(layout="wide")
 def main():
 
     ####Desabilitar tela de login
-    #st.session_state['logged_in'] = True
+    st.session_state['logged_in'] = True
     ####
     
     # Verificar se o usuário está logado
@@ -1521,9 +1521,6 @@ def previsaoArima(df, name, selected_graficos):
         with col1:
             plot_historical_data(selected_product, selected_product_title)  
             
-            
-            prof, forecast, df, future, fig, future_dates = create_profet_object(selected_product, periodo, p, d, q)
-            st.write(fig)
             #generate_forecast_report(prof, forecast, 'Previsão de demanda')
             
             ##########
@@ -1532,7 +1529,9 @@ def previsaoArima(df, name, selected_graficos):
             #######
     
         with col2:
-            generate_components_report(prof, forecast, 'Componentes', df, future)
+            prof, forecast, df, future, fig, future_dates = create_profet_object(selected_product, periodo, p, d, q)
+            st.write(fig)
+            #generate_components_report(prof, forecast, 'Componentes', df, future)
         
             #fig = prof.plot_components(forecast)
                 
