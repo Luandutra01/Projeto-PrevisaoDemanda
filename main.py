@@ -30,7 +30,7 @@ import mysql.connector
 import base64
 import io 
 ###
-from neuralprophet import NeuralProphet
+#from neuralprophet import NeuralProphet
 ###
 from statsmodels.tsa.arima.model import ARIMA
 
