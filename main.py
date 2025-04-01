@@ -25,6 +25,7 @@ import matplotlib.dates as mdates
 from prophet import Prophet
 from prophet.plot import add_changepoints_to_plot
 from prophet.plot import plot_plotly, plot_components_plotly
+from neuralprophet import NeuralProphet
 from streamlit_option_menu import option_menu
 import mysql.connector
 import base64
