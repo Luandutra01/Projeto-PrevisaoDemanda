@@ -1849,6 +1849,7 @@ def analiseArima(df, name, selected_graficos):
             calcular_erros(test_data, forecast_train, st, option2)
 
 def Pycaret(data):
+    st.title('Previsão de demanda')
     # Reordena pela data e redefine o índice
     data = data.sort_values('DATA')
     data = data.set_index('DATA')
