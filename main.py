@@ -1867,7 +1867,8 @@ def Pycaret(data):
     data = data.reset_index()
 
     data = data[['DATA', 'QUANT']]
-    s = setup(data, target='QUANT', index='DATA', fh=3, session_id=123)
+    # compare baseline models
+    best = compare_models()
 
         
 
