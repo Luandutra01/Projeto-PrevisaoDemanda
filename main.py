@@ -25,22 +25,23 @@ import matplotlib.dates as mdates
 from prophet import Prophet
 from prophet.plot import add_changepoints_to_plot
 from prophet.plot import plot_plotly, plot_components_plotly
-from neuralprophet import NeuralProphet
 from streamlit_option_menu import option_menu
 import mysql.connector
 import base64
 import io 
 ###
-#from neuralprophet import NeuralProphet
-###
+from neuralprophet import NeuralProphet
 from statsmodels.tsa.arima.model import ARIMA
+from pycaret.datasets import get_data
+from pycaret.time_series import *
+
 
 st.set_page_config(layout="wide")
 
 def main():
 
     ####Desabilitar tela de login
-    #st.session_state['logged_in'] = True
+    st.session_state['logged_in'] = True
     ####
     
     # Verificar se o usuário está logado
@@ -325,10 +326,10 @@ def previsao(df, name, selected_graficos):
             fig = prof.plot_components(forecast)
                 
             # Removendo o terceiro subplot que mostra os dias da semana
-            fig.delaxes(fig.axes[3])
-            fig.delaxes(fig.axes[2])
-            fig.delaxes(fig.axes[0])
-            st.pyplot(fig)
+            #fig.delaxes(fig.axes[3])
+            #fig.delaxes(fig.axes[2])
+            #fig.delaxes(fig.axes[0])
+            #st.pyplot(fig)
             
         st.markdown(download_link_excel(forecast_table, 'forecast'), unsafe_allow_html=True)
 
@@ -389,54 +390,7 @@ def boxplot(df, name, selected_graficos):
 
 #@st.cache_data
 def analise(df, name, selected_graficos):
-        @st.cache_data
-        def read_sheet(sheet):
-            df = pd.read_excel(name, sheet, header=0)
-            df = df.rename(columns={'QUANTIDADE': 'QUANT'})
-            df = df.rename(columns={'DataInicioSemana': 'DATA'})
         
-            
-            df['Year'] = (df['DATA']//10000)
-            df['Month'] = df['DATA'] - (df['Year'] * 10000)
-            df['Month'] = df['Month'] // 100
-            df['Day'] = df['DATA'] - ( df['Year'] * 10000 + df['Month'] * 100 )
-        
-            # Corrige algumas linhas que o dia é definido como sendo zero
-            df.loc[df['Day'] < 1,'Day'] = 1
-            
-            # Cria um indice baseado no formato ano-semana
-            df['AnoSemanaIdx'] =  df['Year'] * 100 + df['NumeroSemana']
-            df = df.set_index('AnoSemanaIdx')
-            
-            # Corrige os dados das semanas repetidas
-            df = df.groupby(df.index).agg({'NumeroSemana': 'first',
-                                           'DATA': 'first', 
-                                           'QUANT': 'sum',
-                                           'Year': 'first',
-                                           'Month': 'first',
-                                           'Day': 'first'
-                                          })
-            
-        
-            # Coloca a data no formato DateTime em vez de inteiro
-            df['DATA'] = pd.to_datetime(df[['Year','Month','Day']])
-        
-            # Corrige a semana extra no final do ano
-        
-            # 1 - Soma o valor da semana 53 na 52
-            #fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            #cremoso[cremoso['NumeroSemana']==52]['QUANT']  = fixedLastWeek
-        
-            fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            dfFixedLastWeek = fixedLastWeek.to_frame()
-            dfFixedLastWeek['anosemana'] = df[df['NumeroSemana']==52].index
-            dfFixedLastWeek.set_index('anosemana', inplace=True)
-            df.loc[df['NumeroSemana']==52,'QUANT'] = dfFixedLastWeek
-            
-            # 2 - Exclui a semana 53
-            df = df.drop(df[df['NumeroSemana']==53].index)
-            
-            return df
             
         @st.cache_data
         def moving_average_filter(df, order):
@@ -931,56 +885,7 @@ def previsaoNeural(df, name, selected_graficos):
         st.markdown(download_link_excel(forecast_renamed, 'forecast'), unsafe_allow_html=True)
 
 #@st.cache_data
-def analiseNeural(df, name, selected_graficos):
-        @st.cache_data
-        def read_sheet(sheet):
-            df = pd.read_excel(name, sheet, header=0)
-            df = df.rename(columns={'QUANTIDADE': 'QUANT'})
-            df = df.rename(columns={'DataInicioSemana': 'DATA'})
-        
-            
-            df['Year'] = (df['DATA']//10000)
-            df['Month'] = df['DATA'] - (df['Year'] * 10000)
-            df['Month'] = df['Month'] // 100
-            df['Day'] = df['DATA'] - ( df['Year'] * 10000 + df['Month'] * 100 )
-        
-            # Corrige algumas linhas que o dia é definido como sendo zero
-            df.loc[df['Day'] < 1,'Day'] = 1
-            
-            # Cria um indice baseado no formato ano-semana
-            df['AnoSemanaIdx'] =  df['Year'] * 100 + df['NumeroSemana']
-            df = df.set_index('AnoSemanaIdx')
-            
-            # Corrige os dados das semanas repetidas
-            df = df.groupby(df.index).agg({'NumeroSemana': 'first',
-                                           'DATA': 'first', 
-                                           'QUANT': 'sum',
-                                           'Year': 'first',
-                                           'Month': 'first',
-                                           'Day': 'first'
-                                          })
-            
-        
-            # Coloca a data no formato DateTime em vez de inteiro
-            df['DATA'] = pd.to_datetime(df[['Year','Month','Day']])
-        
-            # Corrige a semana extra no final do ano
-        
-            # 1 - Soma o valor da semana 53 na 52
-            #fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            #cremoso[cremoso['NumeroSemana']==52]['QUANT']  = fixedLastWeek
-        
-            fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            dfFixedLastWeek = fixedLastWeek.to_frame()
-            dfFixedLastWeek['anosemana'] = df[df['NumeroSemana']==52].index
-            dfFixedLastWeek.set_index('anosemana', inplace=True)
-            df.loc[df['NumeroSemana']==52,'QUANT'] = dfFixedLastWeek
-            
-            # 2 - Exclui a semana 53
-            df = df.drop(df[df['NumeroSemana']==53].index)
-            
-            return df
-            
+def analiseNeural(df, name, selected_graficos):           
         @st.cache_data
         def moving_average_filter(df, order):
             filtred_df = df.copy()
@@ -1549,56 +1454,7 @@ def previsaoArima(df, name, selected_graficos):
         st.markdown(download_link_excel(forecast_renamed, 'forecast'), unsafe_allow_html=True)
     
 #@st.cache_data
-def analiseArima(df, name, selected_graficos):
-        @st.cache_data
-        def read_sheet(sheet):
-            df = pd.read_excel(name, sheet, header=0)
-            df = df.rename(columns={'QUANTIDADE': 'QUANT'})
-            df = df.rename(columns={'DataInicioSemana': 'DATA'})
-        
-            
-            df['Year'] = (df['DATA']//10000)
-            df['Month'] = df['DATA'] - (df['Year'] * 10000)
-            df['Month'] = df['Month'] // 100
-            df['Day'] = df['DATA'] - ( df['Year'] * 10000 + df['Month'] * 100 )
-        
-            # Corrige algumas linhas que o dia é definido como sendo zero
-            df.loc[df['Day'] < 1,'Day'] = 1
-            
-            # Cria um indice baseado no formato ano-semana
-            df['AnoSemanaIdx'] =  df['Year'] * 100 + df['NumeroSemana']
-            df = df.set_index('AnoSemanaIdx')
-            
-            # Corrige os dados das semanas repetidas
-            df = df.groupby(df.index).agg({'NumeroSemana': 'first',
-                                           'DATA': 'first', 
-                                           'QUANT': 'sum',
-                                           'Year': 'first',
-                                           'Month': 'first',
-                                           'Day': 'first'
-                                          })
-            
-        
-            # Coloca a data no formato DateTime em vez de inteiro
-            df['DATA'] = pd.to_datetime(df[['Year','Month','Day']])
-        
-            # Corrige a semana extra no final do ano
-        
-            # 1 - Soma o valor da semana 53 na 52
-            #fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            #cremoso[cremoso['NumeroSemana']==52]['QUANT']  = fixedLastWeek
-        
-            fixedLastWeek = df.loc[df['NumeroSemana']==52, 'QUANT'].reset_index(drop=True) + df.loc[df['NumeroSemana']==53]['QUANT'].reset_index(drop=True)
-            dfFixedLastWeek = fixedLastWeek.to_frame()
-            dfFixedLastWeek['anosemana'] = df[df['NumeroSemana']==52].index
-            dfFixedLastWeek.set_index('anosemana', inplace=True)
-            df.loc[df['NumeroSemana']==52,'QUANT'] = dfFixedLastWeek
-            
-            # 2 - Exclui a semana 53
-            df = df.drop(df[df['NumeroSemana']==53].index)
-            
-            return df
-            
+def analiseArima(df, name, selected_graficos):            
         @st.cache_data
         def moving_average_filter(df, order):
             filtred_df = df.copy()
@@ -1852,9 +1708,7 @@ def analiseArima(df, name, selected_graficos):
 
             
             d = st.slider('Parâmetro d (Integração)', 0, 2, 1)
-            q = st.slider('Parâmetro q (Média móvel)', 0, 25, 1)
-            
-            
+            q = st.slider('Parâmetro q (Média móvel)', 0, 25, 1)      
 
         col1, col2 = st.columns(2)
 
@@ -1883,15 +1737,14 @@ def analiseArima(df, name, selected_graficos):
         #dividindo dados para treino e teste
         train_data, test_data, tamanhoPrevisao = train_test_split(selected_product)
         tamanhoPrevisao += 1
-        tamanhoPrevisao += 1
-    
+
         
         #terceiro gráfico/previsão
         #periodo = st.slider("Intervalo a ser previsto(semanas)", 12, 38)      
         
         prof_train, forecast_train, df_train, future_train, fig, future_dates = create_profet_object(train_data, tamanhoPrevisao, p, d, q)
         #prof_train, forecast_train, df_train, future_train = create_profet_object(train_data, 38)
-        forecast_train = forecast_train.iloc[1:]
+        forecast_train = forecast_train.iloc[0:]
 
         
         
@@ -1995,7 +1848,26 @@ def analiseArima(df, name, selected_graficos):
             ####função
             calcular_erros(test_data, forecast_train, st, option2)
 
+def Pycaret(data):
+    # Reordena pela data e redefine o índice
+    data = data.sort_values('DATA')
+    data = data.set_index('DATA')
 
+    # Cria índice semanal contínuo
+    full_index = pd.date_range(start=data.index.min(), end=data.index.max(), freq='W-SUN')
+
+    # Reindexa para frequência contínua
+    data = data.reindex(full_index)
+
+    # Preenche valores ausentes (interpolação linear, pode ser outro método)
+    data['QUANT'] = data['QUANT'].interpolate()
+
+    # Resetando para PyCaret
+    data.index.name = 'DATA'
+    data = data.reset_index()
+
+    data = data[['DATA', 'QUANT']]
+    s = setup(data, target='QUANT', index='DATA', fh=3, session_id=123)
 
         
 
@@ -2064,8 +1936,8 @@ def run_main_program():
         with st.sidebar:
             selecao = option_menu(
                 "Menu",
-                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima"],
-                icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line'],
+                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima", "Pycaret"],
+                icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'bar-chart-line'],
                 menu_icon="cast",
                 default_index=0,
             )
@@ -2086,6 +1958,8 @@ def run_main_program():
             previsaoArima(df_filtered, name, selected_graficos)
         elif selecao == 'Análise Arima':
             analiseArima(df_filtered, name, selected_graficos)
+        elif selecao == 'Pycaret':
+            (df_filtered)
             
             
 if __name__ == "__main__":
