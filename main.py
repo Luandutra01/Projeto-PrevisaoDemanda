@@ -32,8 +32,7 @@ import io
 ###
 from neuralprophet import NeuralProphet
 from statsmodels.tsa.arima.model import ARIMA
-from pycaret.datasets import get_data
-from pycaret.time_series import TSForecastingExperiment
+
 
 
 st.set_page_config(layout="wide")
@@ -1848,37 +1847,6 @@ def analiseArima(df, name, selected_graficos):
             ####função
             calcular_erros(test_data, forecast_train, st, option2)
 
-def Pycaret(data):
-    
-    data = data.rename(columns={'QUANTIDADE': 'QUANT', 'DataInicioSemana': 'DATA'})
-
-    # Converte a coluna de DATA para datetime diretamente (assumindo que os dados estão em formato AAAAMMDD inteiro)
-    data['DATA'] = pd.to_datetime(data['DATA'], format='%Y%m%d', errors='coerce')
-    data = data.dropna(subset=['DATA'])  # Remove datas inválidas, se houver
-    
-    # Remove duplicadas e ordena
-    data = data.sort_values('DATA')
-    data = data[['DATA', 'QUANT']].copy()
-    data = data.set_index('DATA')
-    
-    # Reindexa semanalmente
-    full_index = pd.date_range(start=data.index.min(), end=data.index.max(), freq='W-SUN')
-    data = data.reindex(full_index)
-    data['QUANT'] = data['QUANT'].interpolate()
-    data = data.reset_index()
-    data.columns = ['DATA', 'QUANT']
-    
-    # Setup e comparação de modelos
-    exp = TSForecastingExperiment()
-    
-    exp.setup(data=data, target='QUANT', index='DATA', fh=3, session_id=123)
-    
-    best = exp.compare_models()
-    results = exp.pull()  # <- esta linha pega a tabela de comparação
-    exp.plot_model(best, plot='forecast')
-    plt.show()
-
-        
 
 def run_main_program():
     pd.options.mode.chained_assignment = None
@@ -1945,8 +1913,8 @@ def run_main_program():
         with st.sidebar:
             selecao = option_menu(
                 "Menu",
-                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima", "Pycaret"],
-                icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'bar-chart-line'],
+                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima"],
+                icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line'],
                 menu_icon="cast",
                 default_index=0,
             )
@@ -1967,8 +1935,6 @@ def run_main_program():
             previsaoArima(df_filtered, name, selected_graficos)
         elif selecao == 'Análise Arima':
             analiseArima(df_filtered, name, selected_graficos)
-        elif selecao == 'Pycaret':
-            Pycaret(df_filtered)
             
             
 if __name__ == "__main__":
