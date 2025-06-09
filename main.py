@@ -33,7 +33,7 @@ import io
 from neuralprophet import NeuralProphet
 from statsmodels.tsa.arima.model import ARIMA
 from pycaret.datasets import get_data
-from pycaret.time_series import *
+from pycaret.time_series import TSForecastingExperiment
 
 
 st.set_page_config(layout="wide")
@@ -1849,6 +1849,7 @@ def analiseArima(df, name, selected_graficos):
             calcular_erros(test_data, forecast_train, st, option2)
 
 def Pycaret(data):
+    
     data = data.rename(columns={'QUANTIDADE': 'QUANT', 'DataInicioSemana': 'DATA'})
     data['DATA'] = pd.to_datetime(data['DATA'], format='%Y%m%d', errors='coerce')
     data = data.dropna(subset=['DATA'])
@@ -1964,8 +1965,8 @@ def run_main_program():
             previsaoArima(df_filtered, name, selected_graficos)
         elif selecao == 'Análise Arima':
             analiseArima(df_filtered, name, selected_graficos)
-        #elif selecao == 'Pycaret':
-            #Pycaret(df_filtered)
+        elif selecao == 'Pycaret':
+            Pycaret(df_filtered)
             
             
 if __name__ == "__main__":
