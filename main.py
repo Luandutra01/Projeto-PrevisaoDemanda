@@ -32,8 +32,8 @@ import io
 ###
 from neuralprophet import NeuralProphet
 from statsmodels.tsa.arima.model import ARIMA
-from pycaret.datasets import get_data
-from pycaret.time_series import *
+#from pycaret.datasets import get_data
+#from pycaret.time_series import *
 
 
 st.set_page_config(layout="wide")
@@ -1967,8 +1967,8 @@ def run_main_program():
             previsaoArima(df_filtered, name, selected_graficos)
         elif selecao == 'Análise Arima':
             analiseArima(df_filtered, name, selected_graficos)
-        elif selecao == 'Pycaret':
-            (df_filtered)
+        #elif selecao == 'Pycaret':
+            #Pycaret(df_filtered)
             
             
 if __name__ == "__main__":
