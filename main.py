@@ -1875,6 +1875,8 @@ def Pycaret(data):
     
     best = exp.compare_models()
     results = exp.pull()  # <- esta linha pega a tabela de comparação
+    exp.plot_model(best, plot='forecast')
+    plt.show()
 
         
 
