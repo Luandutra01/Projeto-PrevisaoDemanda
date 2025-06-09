@@ -14,4 +14,4 @@ mysql-connector-python
 neuralprophet
 statsmodels
 pytest
-pytorch
+torch
