@@ -1849,27 +1849,34 @@ def analiseArima(df, name, selected_graficos):
             calcular_erros(test_data, forecast_train, st, option2)
 
 def Pycaret(data):
-    st.title('Previsão de demanda')
-    # Reordena pela data e redefine o índice
     data = data.sort_values('DATA')
     data = data.set_index('DATA')
 
     # Cria índice semanal contínuo
     full_index = pd.date_range(start=data.index.min(), end=data.index.max(), freq='W-SUN')
-
-    # Reindexa para frequência contínua
     data = data.reindex(full_index)
-
-    # Preenche valores ausentes (interpolação linear, pode ser outro método)
+    
+    # Interpola valores ausentes
     data['QUANT'] = data['QUANT'].interpolate()
 
-    # Resetando para PyCaret
+    # Prepara para o PyCaret
     data.index.name = 'DATA'
     data = data.reset_index()
-
     data = data[['DATA', 'QUANT']]
-    # compare baseline models
-    best = compare_models()
+
+    # Inicia experimento
+    exp = TSForecastingExperiment()
+    exp.setup(data=data, target='QUANT', index='DATA', fh=3, session_id=123)
+
+    # Compara modelos
+    best = exp.compare_models()
+
+    # Pega e exibe a tabela com as métricas dos modelos
+    results = exp.pull()
+    print(results)
+
+    # Plota o gráfico da série temporal com previsão do melhor modelo
+    exp.plot_model(best, plot='forecast')
 
         
 
