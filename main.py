@@ -1851,30 +1851,30 @@ def analiseArima(df, name, selected_graficos):
 def Pycaret(data):
     
     data = data.rename(columns={'QUANTIDADE': 'QUANT', 'DataInicioSemana': 'DATA'})
+
+    # Converte a coluna de DATA para datetime diretamente (assumindo que os dados estão em formato AAAAMMDD inteiro)
     data['DATA'] = pd.to_datetime(data['DATA'], format='%Y%m%d', errors='coerce')
-    data = data.dropna(subset=['DATA'])
+    data = data.dropna(subset=['DATA'])  # Remove datas inválidas, se houver
     
+    # Remove duplicadas e ordena
     data = data.sort_values('DATA')
     data = data[['DATA', 'QUANT']].copy()
     data = data.set_index('DATA')
-
+    
+    # Reindexa semanalmente
     full_index = pd.date_range(start=data.index.min(), end=data.index.max(), freq='W-SUN')
     data = data.reindex(full_index)
     data['QUANT'] = data['QUANT'].interpolate()
     data = data.reset_index()
     data.columns = ['DATA', 'QUANT']
     
+    # Setup e comparação de modelos
     exp = TSForecastingExperiment()
+    
     exp.setup(data=data, target='QUANT', index='DATA', fh=3, session_id=123)
-
+    
     best = exp.compare_models()
-    results = exp.pull()
-
-    # 📈 Gera o gráfico de previsão do melhor modelo
-    exp.plot_model(best, plot='forecast')
-    plt.show()
-
-    return results
+    results = exp.pull()  # <- esta linha pega a tabela de comparação
 
         
 
