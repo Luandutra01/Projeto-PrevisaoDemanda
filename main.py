@@ -1848,6 +1848,33 @@ def analiseArima(df, name, selected_graficos):
             calcular_erros(test_data, forecast_train, st, option2)
 
 
+# --- helpers ---
+def _iqr_bounds(s, k=1.5):
+    q1 = s.quantile(0.25)
+    q3 = s.quantile(0.75)
+    iqr = q3 - q1
+    return q1 - k*iqr, q3 + k*iqr
+
+def remove_outliers_iqr(df, col, k=1.5):
+    """IQR global."""
+    if col not in df.columns:
+        return df
+    lower, upper = _iqr_bounds(pd.to_numeric(df[col], errors="coerce"), k)
+    s = pd.to_numeric(df[col], errors="coerce")
+    return df[(s >= lower) & (s <= upper)]
+
+def remove_outliers_iqr_by_year(df, value_col, date_col="DATA", k=1.5):
+    """IQR por ano (combina melhor com o boxplot anual)."""
+    if date_col in df.columns and not pd.api.types.is_datetime64_any_dtype(df[date_col]):
+        df = df.copy()
+        df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+    def _f(g):
+        s = pd.to_numeric(g[value_col], errors="coerce")
+        lower, upper = _iqr_bounds(s, k)
+        return g[(s >= lower) & (s <= upper)]
+    return df.groupby(df[date_col].dt.year if date_col in df.columns else 0, group_keys=False).apply(_f)
+
+
 def run_main_program():
     pd.options.mode.chained_assignment = None
     ######### caminho direto ou escolha
@@ -1883,32 +1910,51 @@ def run_main_program():
 
     #verificar se possui um arquivo presente
     if name is not None:
-        # Criação do menu lateral
-        # Obtenção dos dados da interface do streamlit
         if not database:
             with st.sidebar:
                 selected_graficos = st.selectbox("Produtos:", ler_nomes_das_planilhas(name))
                 
             df = read_sheet(name, selected_graficos)
-        
-            
             
             menu = '1'
-        # Sliders para escolher a porcentagem de dados a remover
-        remove_start = st.slider("Apagar dados do início (%)", 0, 100, 0)
-        remove_end = st.slider("Apagar dados do fim (%)", 0, 100, 0)
-
-        # Convertendo porcentagens para número de linhas
-        rows_to_remove_start = int(len(df) * (remove_start / 100))
-        rows_to_remove_end = int(len(df) * (remove_end / 100))
-
-        # Garantindo que a remoção não exceda o total de linhas disponíveis
-        if rows_to_remove_start + rows_to_remove_end >= len(df):
-            st.warning("A remoção total excede o número de linhas disponíveis. Ajuste os sliders.")
-            df_filtered = pd.DataFrame()  # Retorna um DataFrame vazio
-        else:
-            df_filtered = df.iloc[rows_to_remove_start: len(df) - rows_to_remove_end].copy()
-        
+            
+            # Sliders de corte de início/fim (você já tinha)
+            remove_start = st.slider("Apagar dados do início (%)", 0, 100, 0)
+            remove_end   = st.slider("Apagar dados do fim (%)",   0, 100, 0)
+            
+            rows_to_remove_start = int(len(df) * (remove_start / 100))
+            rows_to_remove_end   = int(len(df) * (remove_end   / 100))
+            
+            if rows_to_remove_start + rows_to_remove_end >= len(df):
+                st.warning("A remoção total excede o número de linhas disponíveis. Ajuste os sliders.")
+                df_filtered = pd.DataFrame()
+            else:
+                df_filtered = df.iloc[rows_to_remove_start: len(df) - rows_to_remove_end].copy()
+            
+            # === Checkbox e controles do filtro de outliers ===
+            with st.sidebar:
+                rm_out = st.checkbox("Remover outliers (IQR)", value=False)
+                if rm_out and not df_filtered.empty:
+                    # lista de colunas numéricas
+                    num_cols = [c for c in df_filtered.columns if pd.api.types.is_numeric_dtype(df_filtered[c])]
+                    # tenta escolher QUANTIDADE por padrão, se existir
+                    default_idx = 0
+                    if "QUANTIDADE" in num_cols:
+                        default_idx = num_cols.index("QUANTIDADE")
+                        
+                    #col_iqr = st.selectbox("Coluna para IQR:", options=num_cols, index=default_idx)
+                    col_iqr = "QUANT"
+                    
+                    by_year = st.checkbox("Detectar outliars no ano (coerente com boxplot)", value=True)
+                    k = st.slider("Fator k do IQR", 1.0, 3.0, 1.5, 0.1)
+            
+            # aplica o filtro (se marcado)
+            if 'rm_out' in locals() and rm_out and not df_filtered.empty:
+                if by_year and ("DATA" in df_filtered.columns):
+                    df_filtered = remove_outliers_iqr_by_year(df_filtered, value_col=col_iqr, date_col="DATA", k=k)
+                else:
+                    df_filtered = remove_outliers_iqr(df_filtered, col=col_iqr, k=k)
+    
     if menu=='1':
         with st.sidebar:
             selecao = option_menu(
@@ -1919,8 +1965,6 @@ def run_main_program():
                 default_index=0,
             )
         
-        
-        # Conteúdo da página principal baseado na seleção do menu
         if selecao == 'Previsão Prophet':
             previsao(df_filtered, name, selected_graficos)
         elif selecao == 'Boxplot':
@@ -1935,6 +1979,7 @@ def run_main_program():
             previsaoArima(df_filtered, name, selected_graficos)
         elif selecao == 'Análise Arima':
             analiseArima(df_filtered, name, selected_graficos)
+
             
             
 if __name__ == "__main__":
