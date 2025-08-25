@@ -384,3 +384,19 @@ def train_test_split(df):
     
     return train_df, test_df, tamanhoPrevisao
 
+@st.cache_data
+def get_model_aic_bic(df, p, d, q):
+    """Retorna o AIC e BIC de um ARIMA ajustado."""
+    df = df.rename(columns={'DATA': 'ds', 'QUANT': 'y'})
+    model = ARIMA(df['y'], order=(p, d, q))
+    model_fit = model.fit()
+    return model_fit.aic, model_fit.bic
+
+
+@st.cache_data
+def get_sarima_aic_bic(df, p, d, q, P, D, Q, m):
+    """Retorna o AIC e BIC de um SARIMA ajustado."""
+    df = df.rename(columns={'DATA': 'ds', 'QUANT': 'y'})
+    model = SARIMAX(df['y'], order=(p, d, q), seasonal_order=(P, D, Q, m))
+    model_fit = model.fit(disp=False)
+    return model_fit.aic, model_fit.bic

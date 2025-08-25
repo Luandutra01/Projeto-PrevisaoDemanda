@@ -9,7 +9,8 @@ from utils import (
     calcular_erros,
     plot_historical_data,
     train_test_split,
-    create_arima_object
+    create_arima_object,
+    get_model_aic_bic
 )
 
 def analiseArima(df, nome_tabela, selected_graficos):
@@ -85,8 +86,20 @@ def analiseArima(df, nome_tabela, selected_graficos):
     if option2:
         st.write(forecast_train)
 
+    # === Cálculo de AIC e BIC ===
+    aic, bic = get_model_aic_bic(train_data, p, d, q)
+    
+    st.subheader("📌 Critérios de Informação")
+    col1, col2= st.columns(2)
+    with col1: 
+        st.write(f"**AIC:** {aic:.2f}")
+    with col2: 
+        st.write(f"**BIC:** {bic:.2f}")
+
+
     option = 'Mostrar dados de análise de precisão'
     if option:
         test_data.reset_index(drop=True, inplace=True)
         forecast_train.reset_index(drop=True, inplace=True)
         calcular_erros(test_data, forecast_train, st, option2)
+        
