@@ -30,14 +30,6 @@ def previsaoNeural(df, name, selected_graficos):
 
     with col2:
         generate_components_report(prof, forecast, 'Componentes', df, future)
-    
-        #fig = prof.plot_components(forecast)
-            
-        # Removendo o terceiro subplot que mostra os dias da semana
-        #fig.delaxes(fig.axes[3])
-        #fig.delaxes(fig.axes[2])
-        #fig.delaxes(fig.axes[0])
-        #st.pyplot(fig)
         
     #forecast_table = generate_forecast_table(forecast, 'Previsão de Demanda - Tabela', periodo)
     forecast_renamed = forecast.rename(columns={'ds': 'Data', 'yhat1': 'Previsão média'})

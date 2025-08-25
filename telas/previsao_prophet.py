@@ -1,6 +1,6 @@
 import streamlit as st
 from prophet import Prophet
-from utils import moving_average_filter, plot_historical_data, generate_forecast_table, download_link_excel
+from utils import moving_average_filter, plot_historical_data, generate_forecast_table, download_link_excel, generate_components_report
 
 def previsaoProphet(df, name, selected_graficos):
     st.title('Previsão de demanda')
@@ -27,4 +27,4 @@ def previsaoProphet(df, name, selected_graficos):
         st.markdown(download_link_excel(forecast_table, 'forecast'), unsafe_allow_html=True)
 
     with col2:
-        st.pyplot(prof.plot_components(forecast))
+        generate_components_report(prof, forecast, 'Componentes', df_fit, future)
