@@ -3,15 +3,25 @@ from statsmodels.tsa.arima.model import ARIMA
 import matplotlib.pyplot as plt
 from utils import moving_average_filter, plot_historical_data, download_link_excel
 import pandas as pd
+from pmdarima import auto_arima
 
 def previsaoArima(df, name, selected_graficos):
     st.title('Previsão com ARIMA')
+
+    # ====== Sugestão automática dos parâmetros com auto_arima ======
+    series = df["QUANT"].astype(float)
+    suggestion = auto_arima(series, seasonal=False, stepwise=True, suppress_warnings=True)
+    p_recommend, d_recommend, q_recommend = suggestion.order
+    
+    # ====== Obtenção dos dados da interface do streamlit ======
     with st.sidebar:
-        ordem_filtro = st.slider("Ordem do filtro (semanas)", 1, 52)
+        ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52, q_recommend if q_recommend > 0 else 1)
         periodo = st.slider("Intervalo a ser previsto(semanas)", 1, 24, 12)
-        p = st.slider('Parâmetro p (AutoRegressivo)', 0, 20, 1)       
-        d = st.slider('Parâmetro d (Integração)', 0, 2, 1)
-        q = 0  
+        p = st.slider("Parâmetro p (AutoRegressivo)", 0, 20, p_recommend)
+        d = st.slider("Parâmetro d (Integração)", 0, 2, d_recommend)
+        q = ordem_filtro  # <- no seu caso, q = ordem_filtro
+    
+    st.info(f"🔹 Parâmetros iniciais recomendados automaticamente pelo método **auto_arima**: p={p_recommend}, d={d_recommend}, q={q_recommend}")
 
     selected_product = moving_average_filter(df, ordem_filtro)
     df_fit = selected_product.rename(columns={'DATA': 'ds', 'QUANT': 'y'}).dropna()
