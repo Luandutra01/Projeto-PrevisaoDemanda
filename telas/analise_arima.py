@@ -20,7 +20,7 @@ def analiseArima(df, nome_tabela, selected_graficos):
         ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52)
         p = st.slider('Parâmetro p (AutoRegressivo)', 0, 20, 1)       
         d = st.slider('Parâmetro d (Integração)', 0, 2, 1)
-        q = st.slider('Parâmetro q (Média móvel)', 0, 52, 1)      
+        q = 0      
     
     col1, col2 = st.columns(2)
     
