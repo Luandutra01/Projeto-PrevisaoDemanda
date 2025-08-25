@@ -11,7 +11,7 @@ def previsaoArima(df, name, selected_graficos):
         periodo = st.slider("Intervalo a ser previsto(semanas)", 1, 24, 12)
         p = st.slider('Parâmetro p (AutoRegressivo)', 0, 20, 1)       
         d = st.slider('Parâmetro d (Integração)', 0, 2, 1)
-        q = st.slider('Parâmetro q (Média móvel)', 0, 52, 1)  
+        q = 0  
 
     selected_product = moving_average_filter(df, ordem_filtro)
     df_fit = selected_product.rename(columns={'DATA': 'ds', 'QUANT': 'y'}).dropna()
