@@ -18,6 +18,8 @@ from telas.previsao_neural import previsaoNeural
 from telas.analise_neural import analiseNeural
 from telas.previsao_arima import previsaoArima
 from telas.analise_arima import analiseArima
+from telas.previsao_sarima import previsaoSarima
+from telas.analise_sarima import analiseSarima
 
 st.set_page_config(layout="wide")
 
@@ -77,8 +79,8 @@ def run_main_program():
         with st.sidebar:
             selecao = option_menu(
                 "Menu",
-                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima"],
-                icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line'],
+                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima", "Previsão Sarima", "Análise Sarima"],
+                icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line'],
                 menu_icon="cast",
                 default_index=0,
             )
@@ -96,6 +98,11 @@ def run_main_program():
             previsaoArima(df_filtered, sheet_name, selected_graficos)
         elif selecao == 'Análise Arima':
             analiseArima(df_filtered, sheet_name, selected_graficos)
+        elif selecao == 'Previsão Sarima':
+            previsaoSarima(df_filtered, sheet_name, selected_graficos)
+        elif selecao == 'Análise Sarima':
+            analiseSarima(df_filtered, sheet_name, selected_graficos)
+            
 
     else:
         st.info("📥 Faça upload de um arquivo Excel para continuar.")

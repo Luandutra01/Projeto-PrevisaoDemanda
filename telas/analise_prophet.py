@@ -37,6 +37,7 @@ def analiseProphet(df, name, selected_graficos):
     selected_product = df
     selected_product = moving_average_filter(selected_product, ordem_filtro)
     selected_product_title = selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
+    
     selected_product_title2 = "boxplot de " + selected_graficos + " - Ordem do Filtro: " + str(ordem_filtro) + " (semanas)"
     with col2:
         plot_historical_data(selected_product, selected_product_title) 

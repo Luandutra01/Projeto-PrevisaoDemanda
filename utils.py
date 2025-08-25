@@ -12,6 +12,8 @@ import matplotlib.dates as mdates
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from neuralprophet import NeuralProphet
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+import matplotlib.dates as mdates
 
 ### ====== LEITURA DE DADOS ======
 @st.cache_data
@@ -212,6 +214,43 @@ def create_arima_object(df, periodo, p, d, q):
     ax.grid(True)
 
     return prof, forecast, df, future, fig, future_dates
+
+### ====== SARIMA ======
+
+@st.cache_data
+def create_sarima_object(df, periodo, p, d, q, P, D, Q, s):
+    df = df.rename(columns={'DATA': 'ds', 'QUANT': 'y'})
+    duplicate_ds = df[df.duplicated(subset=['ds'], keep=False)]
+    df = df.drop_duplicates(subset=['ds'], keep='first')
+    
+    # Seleção das colunas 'ds' e 'y'
+    df = df.loc[:, ['ds', 'y']]
+
+    # Ajusta o modelo SARIMA
+    sarima = SARIMAX(df['y'], order=(p, d, q), seasonal_order=(P, D, Q, s))
+    sarima_fit = sarima.fit(disp=False)
+
+    # Cria datas futuras
+    future_dates = pd.date_range(df['ds'].iloc[-1] + pd.Timedelta(weeks=1), periods=periodo, freq='W')
+    forecast = sarima_fit.forecast(steps=periodo)
+    future = pd.DataFrame({'ds': future_dates, 'y': forecast})
+
+    # Configurações para plotagem
+    fig, ax = plt.subplots()
+    ax.plot(df['ds'], df['y'], label='Histórico')
+    ax.plot(future['ds'], future['y'], label='Previsão', linestyle='--')
+
+    # Formatação do eixo x para exibir anos
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+
+    # Adiciona legenda e rótulos
+    ax.legend()
+    ax.set_title('Previsão com SARIMA')
+    ax.set_xlabel('Data')
+    ax.set_ylabel('Valor')
+    ax.grid(True)
+
+    return sarima, forecast, df, future, fig, future_dates
 
 ### ====== FORECAST TABLE ======
 def generate_forecast_table(forecast, periodo):
