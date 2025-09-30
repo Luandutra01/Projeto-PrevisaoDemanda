@@ -15,29 +15,40 @@ from utils import (
 def analiseSarima(df, nome_tabela, selected_graficos):
     st.title("📊 Medidas de análise de precisão - SARIMA")
     
-    # ====== Sugestão automática dos parâmetros com auto_arima ======
+    # Série base
     series = df["QUANT"].astype(float)
-    suggestion = auto_arima(series, seasonal=True, m=52, stepwise=True, suppress_warnings=True)  
-    # aqui "m=52" assume sazonalidade semanal em dados semanais (ajuste se for mensal m=12, etc.)
-    
-    p_recommend, d_recommend, q_recommend = suggestion.order
-    P_recommend, D_recommend, Q_recommend, m_recommend = suggestion.seasonal_order
+
+    # ====== Checkbox para decidir se roda o auto_arima ======
+    usar_auto = st.checkbox("Rodar auto_arima para sugerir parâmetros?", value=False)
+
+    if usar_auto:
+        st.info("⏳ Rodando auto_arima... isso pode demorar um pouco.")
+        suggestion = auto_arima(series, seasonal=True, m=52, stepwise=True, suppress_warnings=True)  
+        p_recommend, d_recommend, q_recommend = suggestion.order
+        P_recommend, D_recommend, Q_recommend, m_recommend = suggestion.seasonal_order
+    else:
+        # Valores padrão caso não rode o auto_arima
+        p_recommend, d_recommend, q_recommend = 1, 0, 1
+        P_recommend, D_recommend, Q_recommend, m_recommend = 0, 0, 0, 52
 
     # ====== Obtenção dos dados da interface do streamlit ======
     with st.sidebar:
         ordem_filtro = st.slider("Ordem do filtro(semanas)", 1, 52, q_recommend if q_recommend > 0 else 1)
         p = st.slider("Parâmetro p (AutoRegressivo)", 0, 20, p_recommend)
         d = st.slider("Parâmetro d (Integração)", 0, 2, d_recommend)
-        q = st.slider("Parâmetro q (Média Móvel)", 0, 20, q_recommend)
+        q = ordem_filtro
 
         P = st.slider("Parâmetro P (Sazonal AR)", 0, 5, P_recommend)
         D = st.slider("Parâmetro D (Sazonal I)", 0, 2, D_recommend)
         Q = st.slider("Parâmetro Q (Sazonal MA)", 0, 5, Q_recommend)
         m = st.slider("Período sazonal (m)", 1, 60, m_recommend)
 
-    st.info(f"🔹 Parâmetros iniciais recomendados pelo **auto_arima**: "
-            f"(p,d,q)=({p_recommend},{d_recommend},{q_recommend}), "
-            f"(P,D,Q,m)=({P_recommend},{D_recommend},{Q_recommend},{m_recommend})")
+    if usar_auto:
+        st.success(f"🔹 Parâmetros sugeridos: "
+                   f"(p,d,q)=({p_recommend},{d_recommend},{q_recommend}), "
+                   f"(P,D,Q,m)=({P_recommend},{D_recommend},{Q_recommend},{m_recommend})")
+    else:
+        st.warning("⚠️ Auto_arima não rodou. Ajuste manualmente os parâmetros nos sliders.")
 
     # ====== Gráficos ======
     col1, col2 = st.columns(2)
