@@ -28,39 +28,43 @@ def analiseArima(df, nome_tabela, selected_graficos):
         d = st.slider("Parâmetro d (Integração)", 0, 2, d_recommend)
         q = ordem_filtro  # <- no seu caso, q = ordem_filtro
     
-    st.info(f"🔹 Parâmetros iniciais recomendados automaticamente pelo método **auto_arima**: p={p_recommend}, d={d_recommend}, q={q_recommend}")
+    st.info(f"🔹 Parâmetros iniciais recomendados automaticamente pelo método **auto_arima**: "
+            f"p={p_recommend}, d={d_recommend}, q={q_recommend}")
 
-    # ====== Continuação do seu código ======
+    # ====== Gráficos de séries originais ======
     col1, col2 = st.columns(2)
     
-    ##grafico sem média móvel
-    selected_productS = df
-    selected_productS = moving_average_filter(selected_productS, 1)
+    ## Série sem média móvel
+    selected_productS = moving_average_filter(df, 1)
     selected_product_titleS = selected_graficos + " - Ordem do Filtro: 1 (semanas)"
     with col1:
         plot_historical_data(selected_productS, selected_product_titleS) 
     
-    #primeiro gráfico
-    selected_product = df
-    selected_product = moving_average_filter(selected_product, ordem_filtro)
+    ## Série com filtro escolhido
+    selected_product = moving_average_filter(df, ordem_filtro)
     selected_product_title = selected_graficos + f" - Ordem do Filtro: {ordem_filtro} (semanas)"
     with col2:
         plot_historical_data(selected_product, selected_product_title) 
 
-    #dividindo dados para treino e teste
+    # ====== Treino/teste ======
     train_data, test_data, tamanhoPrevisao = train_test_split(selected_product)
     tamanhoPrevisao += 1
 
-    #treino do ARIMA
-    prof_train, forecast_train, df_train, future_train, fig, future_dates = create_arima_object(train_data, tamanhoPrevisao, p, d, q)
+    # ====== Treino do ARIMA ======
+    prof_train, forecast_train, df_train, future_train, fig, future_dates = create_arima_object(
+        train_data, tamanhoPrevisao, p, d, q
+    )
     forecast_train = forecast_train.iloc[0:]
 
+    # ====== Gráficos de comparação ======
     col1, col2, col3 = st.columns(3)
     with col1:
         st.pyplot(fig)
 
     with col2:   
-        prof_test, forecast_test, df_test, future_test, fig, future_dates = create_arima_object(test_data, 1, p, d, q)
+        prof_test, forecast_test, df_test, future_test, fig, future_dates = create_arima_object(
+            test_data, 1, p, d, q
+        )
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(test_data['DATA'], forecast_train, color='orange', linestyle='--', label='Previsão')
         ax.plot(test_data['DATA'], test_data['QUANT'], color='blue', label='Real')
@@ -72,7 +76,9 @@ def analiseArima(df, nome_tabela, selected_graficos):
         
     with col3:
         train_dataS, test_dataS, tamanhoPrevisao = train_test_split(selected_productS)
-        prof_testS, forecast_testS, df_testS, future_testS, figS, future_datesS = create_arima_object(test_dataS, 1, p, d, q)
+        prof_testS, forecast_testS, df_testS, future_testS, figS, future_datesS = create_arima_object(
+            test_dataS, 1, p, d, q
+        )
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(test_data['DATA'], forecast_train, color='orange', linestyle='--', label='Previsão')
         ax.plot(test_data['DATA'], test_dataS['QUANT'], color='blue', label='Real')
@@ -82,6 +88,7 @@ def analiseArima(df, nome_tabela, selected_graficos):
         ax.legend()
         st.pyplot(fig)
 
+    # ====== Opções extras ======
     option2 = st.checkbox('Mostrar detalhes dos gráficos')
     if option2:
         st.write(forecast_train)
@@ -96,10 +103,25 @@ def analiseArima(df, nome_tabela, selected_graficos):
     with col2: 
         st.write(f"**BIC:** {bic:.2f}")
 
-
+    # ====== Métricas ======
     option = 'Mostrar dados de análise de precisão'
     if option:
         test_data.reset_index(drop=True, inplace=True)
         forecast_train.reset_index(drop=True, inplace=True)
-        calcular_erros(test_data, forecast_train, st, option2)
-        
+
+        # Comparação com dados originais sem média móvel
+        option3 = st.checkbox('Mostrar em relação aos dados sem média móvel')
+        if option3:
+            selected_product_noMM = moving_average_filter(df, 1)
+            train_data_noMM, test_data_noMM, tamanhoPrevisao_noMM = train_test_split(selected_product_noMM)
+            test_data_noMM.reset_index(drop=True, inplace=True)
+
+            if option2:
+                st.write("Dados de teste (sem média móvel):")
+                st.write(test_data_noMM)
+
+            calcular_erros(test_data_noMM, forecast_train, st, option2)
+        else:
+            # Comparação normal
+            calcular_erros(test_data, forecast_train, st, option2)
+            
