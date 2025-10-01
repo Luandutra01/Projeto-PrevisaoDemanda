@@ -1,9 +1,6 @@
-#1034 linhas total
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
-<<<<<<< main
-=======
 import mysql.connector
 import base64
 import io 
@@ -793,7 +790,7 @@ from telas.analise_arima import analiseArima
 from telas.previsao_sarima import previsaoSarima
 from telas.analise_sarima import analiseSarima
 
-<<<<<<< main
+
 st.set_page_config(layout="wide")
 =======
             # Criação do objeto NeuralProphet
@@ -1736,7 +1733,6 @@ def run_main_program():
         else:
             df_filtered = df.iloc[rows_to_remove_start: len(df) - rows_to_remove_end].copy()
             
-<<<<<<< main
         # === Checkbox e controles do filtro de outliers ===
         with st.sidebar:
             rm_out = st.checkbox("Remover outliers (IQR)", value=False)
@@ -1920,7 +1916,6 @@ def run_main_program():
             calcular_erros(test_data, forecast_train, st, option2)
 
 
->>>>>>> Programa-demonstração-SIN
         
             if 'rm_out' in locals() and rm_out and not df_filtered.empty:
                 df_filtered = remove_outliers_iqr_by_year(df_filtered, value_col=col_iqr, date_col="DATA", k=k)
@@ -1930,8 +1925,8 @@ def run_main_program():
 
         selected_graficos = f"Tabela: {sheet_name}"
         
-<<<<<<< main
-=======
+
+
         # Obter nomes das tabelas
         name = get_table_names(connection)
         
@@ -1960,7 +1955,7 @@ def run_main_program():
             menu = '1'
 
     if menu=='1':
->>>>>>> Programa-demonstração-SIN
+
         with st.sidebar:
             selecao = option_menu(
                 "Menu",
