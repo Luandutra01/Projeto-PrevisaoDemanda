@@ -1,31 +1,9 @@
-#pip install streamlit-option-menu
-# Importando as bibliotecas necessárias
-
+#1034 linhas total
 import streamlit as st
-# Para trabalhar com datas
-import datetime
-# Pandas para o gerênciamento dos dados
 import pandas as pd
-# Numpy para trabalhar com arrays e funções matemáticas
-import numpy as np
-# Matplotlib e Seaborn para plotar gráficos 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import openpyxl
-import plotly.graph_objects as go
-from plotly.offline import iplot
-import altair as alt
-from io import BytesIO
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_squared_error
-##
-import matplotlib.dates as mdates
-###
-# Prophet para a predição de vendas
-from prophet import Prophet
-from prophet.plot import add_changepoints_to_plot
-from prophet.plot import plot_plotly, plot_components_plotly
 from streamlit_option_menu import option_menu
+<<<<<<< main
+=======
 import mysql.connector
 import base64
 import io 
@@ -795,8 +773,29 @@ def previsaoNeural(df, name, selected_graficos):
             df = df.loc[:, ['ds', 'y']]
             #df = df.drop(columns=['AnoSemanaIdx'])
             
+>>>>>>> Programa-demonstração-SIN
 
+from utils import (
+    ler_nomes_das_planilhas,
+    read_sheet,
+    remove_outliers_iqr_by_year,
+    _iqr_bounds
+)
 
+# Importa as telas
+from telas.boxplot import boxplot
+from telas.previsao_prophet import previsaoProphet
+from telas.analise_prophet import analiseProphet
+from telas.previsao_neural import previsaoNeural
+from telas.analise_neural import analiseNeural
+from telas.previsao_arima import previsaoArima
+from telas.analise_arima import analiseArima
+from telas.previsao_sarima import previsaoSarima
+from telas.analise_sarima import analiseSarima
+
+<<<<<<< main
+st.set_page_config(layout="wide")
+=======
             # Criação do objeto NeuralProphet
             prof = NeuralProphet()
             
@@ -1708,129 +1707,54 @@ def analiseArima(df, name, selected_graficos):
             st.write(title)
             fig1 = _prof.plot(forecast)
             st.pyplot(fig1)
+>>>>>>> Programa-demonstração-SIN
 
-        @st.cache_data
-        def generate_forecast_report2(_prof, forecast, title, tamanhoPrevisao):
-            #tamanhoPrevisao += 1
-            st.write(title)
-            # Filtra as últimas num_semanas semanas
-            forecast_filtered = forecast.tail(tamanhoPrevisao)
-            fig1 = _prof.plot(forecast_filtered)
-            st.pyplot(fig1)
-            
-            
-        @st.cache_data
-        def generate_components_report(_prof, forecast, title, df, future):
-            _prof = Prophet(weekly_seasonality=False)
-            _prof.add_seasonality(name='monthly', period=30.5, fourier_order=5)
-            forecast = _prof.fit(df).predict(future)
-            fig2 = _prof.plot_components(forecast)
-            st.pyplot(fig2)
-        
-        @st.cache_data
-        def ler_nomes_das_planilhas(caminho_arquivo):
-            workbook = openpyxl.load_workbook(caminho_arquivo)
-        
-            # Obtém os nomes das planilhas
-            nomes_planilhas = workbook.sheetnames
-        
-            # Fecha o arquivo Excel
-            workbook.close()
-            
-            return nomes_planilhas
-        
-        @st.cache_data
-        def generate_forecast_table(forecast, title):
-            st.write(title)
-            #st.write(forecast)
-            forecast_renamed = forecast.rename(columns={'ds': 'Data', 'y': 'Previsão média'})
-            return forecast_renamed
+def run_main_program():
+    st.sidebar.title("📊 Configuração dos Dados")
+    uploaded_file = "dadosSIN.xlsx"
+
+    if uploaded_file:
+        # Listar abas do Excel
+        planilhas = ler_nomes_das_planilhas(uploaded_file)
+        sheet_name = st.sidebar.selectbox("Escolha a planilha", planilhas)
+
+        # Carregar dados
+        df = read_sheet(uploaded_file, sheet_name)
 
 
-        @st.cache_data
-        def calcular_porcentagem_entre_min_max(prev_min, prev_max, test_data):
-            total = len(test_data)
-            dentro_intervalo = ((test_data >= prev_min) & (test_data <= prev_max)).sum()
-            percentual = dentro_intervalo / total * 100
-            return percentual
-
-        @st.cache_data
-        def calcular_erros(test_data, forecast_train, st, option2):
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                # Calcular o Erro Médio Absoluto (MAE)
-                mae = mean_absolute_error(test_data['QUANT'], forecast_train)
-                st.write("Erro Médio Absoluto (MAE):", int(mae))
+        #####################
+        # Sliders de corte de início/fim (você já tinha)
+        remove_start = st.slider("Apagar dados do início (%)", 0, 100, 0)
+        remove_end   = st.slider("Apagar dados do fim (%)",   0, 100, 0)
             
-            APE = mae / test_data['QUANT'] * 100
+        rows_to_remove_start = int(len(df) * (remove_start / 100))
+        rows_to_remove_end   = int(len(df) * (remove_end   / 100))
             
-            # Calcular o Erro Percentual Absoluto Médio (MAPE)
-
-            MAPE = APE.mean()
+        if rows_to_remove_start + rows_to_remove_end >= len(df):
+            st.warning("A remoção total excede o número de linhas disponíveis. Ajuste os sliders.")
+            df_filtered = pd.DataFrame()
+        else:
+            df_filtered = df.iloc[rows_to_remove_start: len(df) - rows_to_remove_end].copy()
             
-            # Configurar as cores para o gráfico de medidor
-            if MAPE < 10:
-                bar_color = "green"
-            elif MAPE < 20:
-                bar_color = "yellow"
-            else:
-                bar_color = "red"    
+<<<<<<< main
+        # === Checkbox e controles do filtro de outliers ===
+        with st.sidebar:
+            rm_out = st.checkbox("Remover outliers (IQR)", value=False)
+            if rm_out and not df_filtered.empty:
+                # lista de colunas numéricas
+                num_cols = [c for c in df_filtered.columns if pd.api.types.is_numeric_dtype(df_filtered[c])]
+                # tenta escolher QUANTIDADE por padrão, se existir
+                default_idx = 0
+                if "QUANTIDADE" in num_cols:
+                    default_idx = num_cols.index("QUANTIDADE")
+                        
+                #col_iqr = st.selectbox("Coluna para IQR:", options=num_cols, index=default_idx)
+                col_iqr = "QUANT"
+                    
+                
+                k = st.slider("Fator k do IQR", 1.0, 3.0, 1.5, 0.1)
             
-            # Criar o gráfico de medidor
-            fig = go.Figure(go.Indicator(
-                mode = "gauge+number",
-                value = MAPE,
-                title = {'text': "Erro Percentual Absoluto Médio (MAPE)"},
-                gauge = {
-                    'axis': {'range': [None, 100]},
-                    'bar': {'color': bar_color, 'thickness': 1},  # Espessura máxima da barra
-                    'bgcolor': 'black',
-                    'borderwidth': 0,  # Remover bordas
-                    'bordercolor': 'black',  # Ajustar a cor da borda para preto
-                    'steps': [
-                        {'range': [0, 100], 'color': 'gray'}  # Fundo preto
-                    ],
-                    'threshold': {
-                        'line': {'color': "black", 'width': 4},
-                        'thickness': 0.75,
-                        'value': MAPE
-                    }
-                }
-            ))
-            with col2: 
-                st.write("Erro Percentual Absoluto Médio (MAPE):", round(MAPE, 2), "%")
-                #st.plotly_chart(fig)
-            with col3:
-                # Calcular o Root Mean Square Error (RMSE)
-                RMSE = np.sqrt(mean_squared_error(test_data['QUANT'], forecast_train))
-                st.write("Raiz do Erro Quadrático Médio (RMSE):", int(RMSE))
-
-            
-            # Calcular os erros
-            errors = test_data['QUANT'] - forecast_train
-        
-            if option2:
-                st.write("Diferenças entre os valores e as previsões:")
-                st.write(errors)
-
-            col1, col2 = st.columns(2)
-              
-            # Plotar o histograma dos erros
-            plt.figure(figsize=(8, 6))
-            plt.hist(errors, bins=6, color='skyblue', edgecolor='black')
-            plt.title('Histograma dos Erros')
-            plt.xlabel('Erro')
-            plt.ylabel('Frequência')
-            plt.grid(True)
-            with col1: 
-                st.pyplot(plt)
-            
-            # Erros em porcentagem
-            errors_percent = (test_data['QUANT'] - forecast_train) / test_data['QUANT'] * 100
-            if option2:
-                st.write("Diferenças entre os valores e as previsões em porcentagem")
-                st.write(errors_percent)
-            
+=======
             # Plotar o histograma dos erros percentuais
             plt.figure(figsize=(8, 6))
             plt.hist(errors_percent, bins=6, color='skyblue', edgecolor='black')
@@ -1996,25 +1920,18 @@ def analiseArima(df, name, selected_graficos):
             calcular_erros(test_data, forecast_train, st, option2)
 
 
+>>>>>>> Programa-demonstração-SIN
         
+            if 'rm_out' in locals() and rm_out and not df_filtered.empty:
+                df_filtered = remove_outliers_iqr_by_year(df_filtered, value_col=col_iqr, date_col="DATA", k=k)
 
-def run_main_program():
-    pd.options.mode.chained_assignment = None
-    ######### caminho direto ou escolha
-    #name = "D:\OneDrive\Área de Trabalho\CantoDeMinas\Dados semanais com gráficos.xlsx"
 
-    menu = '0'
-    with st.sidebar:
-        database = st.checkbox('Utilizar banco de dados')
+        st.sidebar.success(f"✔ Planilha '{sheet_name}' carregada com {len(df_filtered)} linhas.")
+
+        selected_graficos = f"Tabela: {sheet_name}"
         
-    if database:
-        user = 'luan'
-        password = 'luan'
-        host = 'localhost'
-        database = 'cantodeminas'
-        connection = connect_to_mysql(user, password, host, database)
-
-        
+<<<<<<< main
+=======
         # Obter nomes das tabelas
         name = get_table_names(connection)
         
@@ -2043,31 +1960,38 @@ def run_main_program():
             menu = '1'
 
     if menu=='1':
+>>>>>>> Programa-demonstração-SIN
         with st.sidebar:
             selecao = option_menu(
                 "Menu",
-                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima"],
-                icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line'],
+                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima", "Previsão Sarima", "Análise Sarima"],
+                icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line'],
                 menu_icon="cast",
                 default_index=0,
             )
-            
-        # Conteúdo da página principal baseado na seleção do menu
-        if selecao == 'Previsão Prophet':
-            previsao(df, name, selected_graficos)
-        elif selecao == 'Boxplot':
-            boxplot(df, name, selected_graficos)
+        if selecao == 'Boxplot':
+            boxplot(df_filtered, sheet_name, selected_graficos)
+        elif selecao == 'Previsão Prophet':
+            previsaoProphet(df_filtered, sheet_name, selected_graficos)
         elif selecao == 'Análise Prophet':
-            analise(df, name, selected_graficos)
+            analiseProphet(df_filtered, sheet_name, selected_graficos)
         elif selecao == 'Previsão NeuralProphet':
-            previsaoNeural(df, name, selected_graficos)
+            previsaoNeural(df_filtered, sheet_name, selected_graficos)
         elif selecao == 'Análise NeuralProphet':
-            analiseNeural(df, name, selected_graficos)
+            analiseNeural(df_filtered, sheet_name, selected_graficos)
         elif selecao == 'Previsão Arima':
-            previsaoArima(df, name, selected_graficos)
+            previsaoArima(df_filtered, sheet_name, selected_graficos)
         elif selecao == 'Análise Arima':
-            analiseArima(df, name, selected_graficos)
+            analiseArima(df_filtered, sheet_name, selected_graficos)
+        elif selecao == 'Previsão Sarima':
+            previsaoSarima(df_filtered, sheet_name, selected_graficos)
+        elif selecao == 'Análise Sarima':
+            analiseSarima(df_filtered, sheet_name, selected_graficos)
             
-            
+
+    else:
+        st.info("📥 Faça upload de um arquivo Excel para continuar.")
+
+
 if __name__ == "__main__":
-    main()
+    run_main_program()
