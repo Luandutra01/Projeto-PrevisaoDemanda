@@ -25,7 +25,7 @@ st.set_page_config(layout="wide")
 
 def run_main_program():
     st.sidebar.title("📊 Configuração dos Dados")
-    uploaded_file = st.sidebar.file_uploader("Arraste o Excel aqui", type=["xlsx"])
+    uploaded_file = "dadosSIN.xlsx"
 
     if uploaded_file:
         # Listar abas do Excel
