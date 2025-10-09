@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
 from pmdarima import auto_arima  
+import matplotlib.dates as mdates
 
 from utils import (
     moving_average_filter,
@@ -82,12 +83,13 @@ def analiseSarima(df, nome_tabela, selected_graficos):
         prof_test, forecast_test, df_test, future_test, fig, future_dates = create_sarima_object(
             test_data, 1, p, d, q, P, D, Q, m
         )
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots()
         ax.plot(test_data['DATA'], forecast_train, color='orange', linestyle='--', label='Previsão')
         ax.plot(test_data['DATA'], test_data['QUANT'], color='blue', label='Real')
         ax.set_title('Previsão vs Real')
-        ax.set_xlabel('Data')
-        ax.set_ylabel('Quantidade')
+        ax.set_xlabel('Data', fontsize=14)
+        ax.set_ylabel('Quantidade', fontsize=14)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
         ax.legend()
         st.pyplot(fig)
         
@@ -96,12 +98,13 @@ def analiseSarima(df, nome_tabela, selected_graficos):
         prof_testS, forecast_testS, df_testS, future_testS, figS, future_datesS = create_sarima_object(
             test_dataS, 1, p, d, q, P, D, Q, m
         )
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots()
         ax.plot(test_data['DATA'], forecast_train, color='orange', linestyle='--', label='Previsão')
         ax.plot(test_data['DATA'], test_dataS['QUANT'], color='blue', label='Real')
         ax.set_title('Previsão vs Real (sem média móvel)')
         ax.set_xlabel('Data')
         ax.set_ylabel('Quantidade')
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
         ax.legend()
         st.pyplot(fig)
 
