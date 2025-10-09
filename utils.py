@@ -344,11 +344,11 @@ def calcular_erros(test_data, forecast_train, st, option2):
     col1, col2 = st.columns(2)
       
     # Plotar o histograma dos erros
-    plt.figure(figsize=(8, 6))
+    plt.figure()
     plt.hist(errors, bins=6, color='skyblue', edgecolor='black')
     plt.title('Histograma dos Erros')
-    plt.xlabel('Erro')
-    plt.ylabel('Frequência')
+    plt.xlabel('Erro', fontsize=16)
+    plt.ylabel('Frequência', fontsize=16)
     plt.grid(True)
     with col1: 
         st.pyplot(plt)
@@ -360,11 +360,11 @@ def calcular_erros(test_data, forecast_train, st, option2):
         st.write(errors_percent)
     
     # Plotar o histograma dos erros percentuais
-    plt.figure(figsize=(8, 6))
+    plt.figure()
     plt.hist(errors_percent, bins=6, color='skyblue', edgecolor='black')
     plt.title('Histograma dos Erros percentuais')
-    plt.xlabel('Erro %')
-    plt.ylabel('Frequência')
+    plt.xlabel('Erro %', fontsize=16)
+    plt.ylabel('Frequência', fontsize=16)
     plt.grid(True)
 
     with col2: 

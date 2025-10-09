@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
 from neuralprophet import NeuralProphet
+import matplotlib.dates as mdates
 
 from utils import (
     moving_average_filter, 
@@ -68,7 +69,7 @@ def analiseNeural(df, nome_tabela, selected_graficos):
         prof_test, forecast_test, df_test, future_test, fig = create_neural_object(test_data, 1)
 
         # Criar o gráfico
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots()
         
         # Plotar a linha de previsão
         ax.plot(test_data['DATA'], forecast_train['yhat1'], color='orange', linestyle='--', label='Previsão')
@@ -78,8 +79,9 @@ def analiseNeural(df, nome_tabela, selected_graficos):
         
         # Adicionar títulos e legendas
         ax.set_title('Previsão vs Real')
-        ax.set_xlabel('Data')
-        ax.set_ylabel('Quantidade')
+        ax.set_xlabel('Data', fontsize=14)
+        ax.set_ylabel('Quantidade', fontsize=14)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
         ax.legend()
         
         # Exibir o gráfico no Streamlit
@@ -95,7 +97,7 @@ def analiseNeural(df, nome_tabela, selected_graficos):
         prof_test, forecast_test, df_test, future_test, fig = create_neural_object(test_data, 1)
 
         # Criar o gráfico
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots()
         
         # Plotar a linha de previsão
         ax.plot(test_dataS['DATA'], forecast_train['yhat1'], color='orange', linestyle='--', label='Previsão')
@@ -105,8 +107,9 @@ def analiseNeural(df, nome_tabela, selected_graficos):
         
         # Adicionar títulos e legendas
         ax.set_title('Previsão vs Real (sem média móvel)')
-        ax.set_xlabel('Data')
-        ax.set_ylabel('Quantidade')
+        ax.set_xlabel('Data', fontsize=14)
+        ax.set_ylabel('Quantidade', fontsize=14)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
         ax.legend()
         
         # Exibir o gráfico no Streamlit

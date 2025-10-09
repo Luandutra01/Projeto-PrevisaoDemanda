@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 from pmdarima import auto_arima  # <- para sugerir p,d,q automaticamente
+import matplotlib.dates as mdates
 
 from utils import (
     moving_average_filter,
@@ -65,13 +66,15 @@ def analiseArima(df, nome_tabela, selected_graficos):
         prof_test, forecast_test, df_test, future_test, fig, future_dates = create_arima_object(
             test_data, 1, p, d, q
         )
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(test_data['DATA'], forecast_train, color='orange', linestyle='--', label='Previsão')
+        #fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots()
+        ax.plot(test_data['DATA'], forecast_train, color='orange', label='Previsão')
         ax.plot(test_data['DATA'], test_data['QUANT'], color='blue', label='Real')
         ax.set_title('Previsão vs Real')
-        ax.set_xlabel('Data')
-        ax.set_ylabel('Quantidade')
-        ax.legend()
+        ax.set_xlabel('Data', fontsize=14)
+        ax.set_ylabel('Quantidade', fontsize=14)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
+        ax.legend(fontsize=14)
         st.pyplot(fig)
         
     with col3:
@@ -79,14 +82,17 @@ def analiseArima(df, nome_tabela, selected_graficos):
         prof_testS, forecast_testS, df_testS, future_testS, figS, future_datesS = create_arima_object(
             test_dataS, 1, p, d, q
         )
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(test_data['DATA'], forecast_train, color='orange', linestyle='--', label='Previsão')
+        #fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots()
+        ax.plot(test_data['DATA'], forecast_train, color='orange', label='Previsão')
         ax.plot(test_data['DATA'], test_dataS['QUANT'], color='blue', label='Real')
         ax.set_title('Previsão vs Real (sem média móvel)')
-        ax.set_xlabel('Data')
-        ax.set_ylabel('Quantidade')
-        ax.legend()
+        ax.set_xlabel('Data', fontsize=14)
+        ax.set_ylabel('Quantidade', fontsize=14)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
+        ax.legend(fontsize=14)
         st.pyplot(fig)
+
 
     # ====== Opções extras ======
     option2 = st.checkbox('Mostrar detalhes dos gráficos')
