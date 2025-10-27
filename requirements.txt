@@ -18,4 +18,8 @@ statsmodels==0.14.2
 pytest==7.2.2
 pycaret==3.3.2
 pmdarima
+cmdstanpy==1.2.0
+stanio==0.3.0
+holidays>=0.67
+torch==2.5.1
 
