@@ -24,7 +24,7 @@ st.set_page_config(layout="wide")
 
 def run_main_program():
     st.sidebar.title("📊 Configuração dos Dados")
-    uploaded_file = "Dados semanais com gráficos.xlsx"
+    uploaded_file = "DadosSIN.xlsx"
 
     if uploaded_file:
         # Listar abas do Excel
