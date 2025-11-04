@@ -64,7 +64,7 @@ def run_main_program():
                 col_iqr = "QUANT"
                     
                 
-                k = st.slider("Fator k do IQR", 1.0, 3.0, 1.5, 0.1)
+                k = st.slider("Fator k do IQR", 1.0, 3.0, 1.7, 0.1)
             
         
             if 'rm_out' in locals() and rm_out and not df_filtered.empty:
