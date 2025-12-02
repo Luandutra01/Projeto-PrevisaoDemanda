@@ -122,6 +122,56 @@ def create_profet_object(df, periodo):
     #forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail()
     return (prof, forecast, df, future)
 
+@st.cache_data
+def create_profet_object2(df, periodo):
+    df = df.rename(columns={'DATA': 'ds', 'QUANT': 'y'})
+    duplicate_ds = df[df.duplicated(subset=['ds'], keep=False)]
+    #if not duplicate_ds.empty:
+        #st.write("Duplicatas encontradas na coluna 'ds', só a primeira foi mantida:")
+        #st.write(duplicate_ds)
+    df = df.drop_duplicates(subset=['ds'], keep='first')
+    # Seleção das colunas 'ds' e 'y'
+    df = df.loc[:, ['ds', 'y']]
+    #df = df.drop(columns=['AnoSemanaIdx'])
+
+    # Criação do objeto NeuralProphet
+    prof = Prophet()
+    
+    # Ajuste do modelo com os dados históricos
+    prof.fit(df)
+
+    #future = prof.make_future_dataframe(periods=periodo)
+    future = prof.make_future_dataframe(periods=periodo, freq='W')
+    
+    #future = pd.DataFrame({
+    #    'ds': pd.date_range(start=df['ds'].max(), periods=periodo, freq='W')
+    #})
+    
+    # Previsão dos valores futuros
+    forecast = prof.predict(future)
+
+    ###########
+    # Configurações para plotagem
+    fig, ax = plt.subplots()
+    ax.plot(df['ds'], df['y'], label='Histórico')
+    ax.plot(forecast['ds'].tail(periodo), forecast['yhat'].tail(periodo), label='Previsão', linestyle='--')
+
+    # Formatação do eixo x para exibir datas
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+
+    # Adiciona legenda e rótulos aos eixos
+    ax.legend()
+    ax.set_title('Previsão com Prophet')
+    ax.set_xlabel('Data')
+    ax.set_ylabel('Valor')
+    ax.grid(True)
+
+    # Exibe o gráfico na interface do Streamlit
+    #st.pyplot(fig)
+    #############
+    
+    return (prof, forecast, df, future, fig)
+
 ### ====== Neural ======
 @st.cache_data
 def create_neural_object(df, periodo):
