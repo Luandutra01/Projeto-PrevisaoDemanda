@@ -106,7 +106,7 @@ def analiseNeural(df, nome_tabela, selected_graficos):
         ax.plot(test_dataS['DATA'], test_dataS['QUANT'], color='blue', label='Real')
         
         # Adicionar títulos e legendas
-        ax.set_title('Previsão vs Real (sem média móvel)')
+        ax.set_title('NeuralProphet - Previsão vs Real (sem média móvel)')
         ax.set_xlabel('Data', fontsize=14)
         ax.set_ylabel('Quantidade', fontsize=14)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))

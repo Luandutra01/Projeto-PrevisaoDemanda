@@ -90,7 +90,7 @@ def analiseSarima(df, nome_tabela, selected_graficos):
         ax.set_xlabel('Data', fontsize=14)
         ax.set_ylabel('Quantidade', fontsize=14)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
-        ax.legend()
+        ax.legend(fontsize=14)
         st.pyplot(fig)
         
     with col3:
@@ -101,11 +101,11 @@ def analiseSarima(df, nome_tabela, selected_graficos):
         fig, ax = plt.subplots()
         ax.plot(test_data['DATA'], forecast_train, color='orange', linestyle='--', label='Previsão')
         ax.plot(test_data['DATA'], test_dataS['QUANT'], color='blue', label='Real')
-        ax.set_title('Previsão vs Real (sem média móvel)')
-        ax.set_xlabel('Data')
-        ax.set_ylabel('Quantidade')
+        ax.set_title('SARIMA - Previsão vs Real (sem média móvel)')
+        ax.set_xlabel('Data', fontsize=14)
+        ax.set_ylabel('Quantidade', fontsize=14)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m'))
-        ax.legend()
+        ax.legend(fontsize=14)
         st.pyplot(fig)
 
     # Mostrar previsões detalhadas
@@ -123,9 +123,25 @@ def analiseSarima(df, nome_tabela, selected_graficos):
     with col2: 
         st.write(f"**BIC:** {bic:.2f}")
     
-    # Mostrar métricas
+    # ====== Métricas ======
     option = 'Mostrar dados de análise de precisão'
     if option:
         test_data.reset_index(drop=True, inplace=True)
         forecast_train.reset_index(drop=True, inplace=True)
-        calcular_erros(test_data, forecast_train, st, option2)
+
+        # Comparação com dados originais sem média móvel
+        option3 = st.checkbox('Mostrar em relação aos dados sem média móvel')
+        if option3:
+            selected_product_noMM = moving_average_filter(df, 1)
+            train_data_noMM, test_data_noMM, tamanhoPrevisao_noMM = train_test_split(selected_product_noMM)
+            test_data_noMM.reset_index(drop=True, inplace=True)
+
+            if option2:
+                st.write("Dados de teste (sem média móvel):")
+                st.write(test_data_noMM)
+
+            calcular_erros(test_data_noMM, forecast_train, st, option2)
+        else:
+            # Comparação normal
+            calcular_erros(test_data, forecast_train, st, option2)
+            
