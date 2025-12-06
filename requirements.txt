@@ -12,7 +12,6 @@ altair==5.3.0
 
 # Prophet + dependências compatíveis com Python 3.11
 prophet==1.1.5
-pystan==2.19.1.1
 cmdstanpy==1.2.0
 
 scikit-learn==1.4.2
