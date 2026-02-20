@@ -2,7 +2,7 @@ rich==13.7.1
 markdown-it-py==2.2.0
 streamlit==1.32.2
 
-numpy==1.24.0
+numpy==1.25.0
 pandas==2.1.1
 matplotlib==3.5.3
 seaborn==0.13.0
@@ -28,4 +28,4 @@ mysql-connector-python
 neuralprophet==1.0.0rc10
 torch==2.2.2
 
-tensorflow==2.13.0
+tensorflow==2.15.0
