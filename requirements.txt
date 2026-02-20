@@ -10,11 +10,11 @@ openpyxl==3.1.2
 plotly==5.18.0
 altair==5.3.0
 
-# Prophet (sem pystan!)
+
 prophet==1.1.5
 cmdstanpy==1.2.0
 
-# Arima / Statsmodels / Scipy (fix para Python 3.11)
+
 scipy==1.11.4
 statsmodels==0.14.2
 pmdarima==2.0.4
@@ -24,9 +24,8 @@ setuptools
 streamlit-option-menu==0.3.13
 mysql-connector-python
 
-# NeuralProphet
+
 neuralprophet==1.0.0rc10
 torch==2.2.2
 
-# Rede Neural
 tensorflow==2.13.0
