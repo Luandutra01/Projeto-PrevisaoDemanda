@@ -27,3 +27,6 @@ mysql-connector-python
 # NeuralProphet
 neuralprophet==1.0.0rc10
 torch==2.2.2
+
+# Rede Neural
+tensorflow==2.13.0
