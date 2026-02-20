@@ -1,3 +1,4 @@
+#1034 linhas total
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
@@ -19,6 +20,7 @@ from telas.previsao_arima import previsaoArima
 from telas.analise_arima import analiseArima
 from telas.previsao_sarima import previsaoSarima
 from telas.analise_sarima import analiseSarima
+from telas.analise_rede import analiseRede
 
 from telas.analise_prophet2 import analiseProphet2
 
@@ -80,7 +82,7 @@ def run_main_program():
         with st.sidebar:
             selecao = option_menu(
                 "Menu",
-                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima", "Previsão Sarima", "Análise Sarima", "Análise Prophet2"],
+                ["Boxplot", "Previsão Prophet", "Análise Prophet", "Previsão NeuralProphet", "Análise NeuralProphet", "Previsão Arima", "Análise Arima", "Previsão Sarima", "Análise Sarima", "Análise Rede Neural"],
                 icons=['box', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up', 'bar-chart-line', 'graph-up'],
                 menu_icon="cast",
                 default_index=0,
@@ -103,8 +105,10 @@ def run_main_program():
             previsaoSarima(df_filtered, sheet_name, selected_graficos)
         elif selecao == 'Análise Sarima':
             analiseSarima(df_filtered, sheet_name, selected_graficos)
-        elif selecao == 'Análise Prophet2':
-            analiseProphet2(df_filtered, sheet_name, selected_graficos)
+        #elif selecao == 'Análise Prophet2':
+            #analiseProphet2(df_filtered, sheet_name, selected_graficos)
+        elif selecao == 'Análise Rede Neural':
+            analiseRede(df_filtered, sheet_name, selected_graficos)
             
 
     else:

@@ -15,6 +15,8 @@ from neuralprophet import NeuralProphet
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib.dates as mdates
 
+
+
 ### ====== LEITURA DE DADOS ======
 @st.cache_data
 def ler_nomes_das_planilhas(caminho_arquivo):
@@ -187,7 +189,7 @@ def create_neural_object(df, periodo):
 
     # Criação do objeto NeuralProphet
     prof = NeuralProphet()
-    
+
     # Ajuste do modelo com os dados históricos
     prof.fit(df)
 
