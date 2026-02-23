@@ -40,7 +40,6 @@ The paper presents:
 
 -   Statistical foundations of ARIMA and SARIMA\
 -   Prophet and NeuralProphet modeling approach\
--   LSTM architecture design\
 -   Evaluation methodology (MAE, MAPE, RMSE)\
 -   Comparative performance discussion
 
