@@ -73,10 +73,10 @@ def train_and_forecast_lstm(df, window_size=12, epochs=50):
 def analiseRede(df, nome_tabela, selected_graficos):
 
     st.title("📊 Análise – Rede Neural (LSTM)")
-    st.caption(
-        "O modelo é treinado com dados suavizados por média móvel, "
-        "mas avaliado com base nos dados originais."
-    )
+    #st.caption(
+    #    "O modelo é treinado com dados suavizados por média móvel, "
+    #    "mas avaliado com base nos dados originais."
+    #)
 
     with st.sidebar:
         ordem_filtro = st.slider("Ordem da média móvel (semanas)", 1, 52, 1)
