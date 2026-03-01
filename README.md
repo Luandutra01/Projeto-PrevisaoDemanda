@@ -6,7 +6,7 @@ classical statistical models and deep learning approaches.
 This project compares different time series forecasting techniques using
 five years of aggregated weekly sales data.
 
-🔗 **Live App:** https://projeto-previsaodemanda.streamlit.app/\
+🔗 **Live App:** https://projeto-previsaodemanda.streamlit.app
 🔗 **Author:** Luan Dutra
 
 ------------------------------------------------------------------------
