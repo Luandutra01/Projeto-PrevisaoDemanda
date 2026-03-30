@@ -1,153 +1,148 @@
-# 📈 Demand Forecasting with Statistical and Machine Learning Models
+# 📈 Previsão de Demanda com Modelos Estatísticos e de Machine Learning
 
-Web application and research project focused on demand forecasting using
-classical statistical models and deep learning approaches.
+Aplicação web e projeto de pesquisa focados em previsão de demanda utilizando
+modelos estatísticos clássicos e abordagens de deep learning.
 
-This project compares different time series forecasting techniques using
-five years of aggregated weekly sales data.
+Este projeto compara diferentes técnicas de previsão de séries temporais usando
+cinco anos de dados agregados de vendas semanais.
 
-🔗 **Live App:** https://projeto-previsaodemanda.streamlit.app
-🔗 **Author:** Luan Dutra
+🔗 **Aplicação online:** https://projeto-previsaodemanda.streamlit.app
+🔗 **Autor:** Luan Dutra
 
-------------------------------------------------------------------------
+---
 
-## 📌 Project Overview
+## 📌 Visão Geral do Projeto
 
-This project was developed as part of an academic research initiative in
-Data Science. The objective was to evaluate and compare forecasting
-models for demand prediction using real historical sales data.
+Este projeto foi desenvolvido como parte de uma iniciativa acadêmica em
+Ciência de Dados. O objetivo foi avaliar e comparar modelos de previsão
+para predição de demanda utilizando dados históricos reais de vendas.
 
-The study includes:
+O estudo inclui:
 
--   Classical statistical models\
--   Machine learning approaches\
--   Deep learning models\
--   Comparative evaluation using error metrics
+* Modelos estatísticos clássicos
+* Abordagens de machine learning
+* Modelos de deep learning
+* Avaliação comparativa utilizando métricas de erro
 
-All data used are aggregated historical records.
+---
 
-------------------------------------------------------------------------
+## 📄 Artigo Científico
 
-## 📄 Research Paper
+Um artigo acadêmico completo detalhando a base teórica, decisões de modelagem,
+desenho experimental e resultados comparativos está incluído neste repositório.
 
-A complete academic paper detailing the theoretical background, modeling
-decisions, experimental design, and comparative results is included in
-this repository.
+📎 **Artigo completo em português disponível em:** `/docs/ARTIGO.pdf`
 
-📎 **Full paper in portuguese available at:** `/docs/ARTIGO.pdf`
+O artigo apresenta:
 
-The paper presents:
+* Fundamentos estatísticos de ARIMA e SARIMA
+* Abordagem de modelagem com Prophet e NeuralProphet
+* Metodologia de avaliação (MAE, MAPE, RMSE)
+* Discussão comparativa de desempenho
 
--   Statistical foundations of ARIMA and SARIMA\
--   Prophet and NeuralProphet modeling approach\
--   Evaluation methodology (MAE, MAPE, RMSE)\
--   Comparative performance discussion
+---
 
-------------------------------------------------------------------------
+## 🧠 Modelos Implementados
 
-## 🧠 Models Implemented
+### Modelos Estatísticos
 
-### Statistical Models
-
--   ARIMA\
--   SARIMA\
--   Prophet
+* ARIMA
+* SARIMA
+* Prophet
 
 ### Machine Learning / Deep Learning
 
--   NeuralProphet\
--   LSTM (Long Short-Term Memory Neural Network)
+* NeuralProphet
+* LSTM (Rede Neural de Memória de Curto e Longo Prazo)
 
-------------------------------------------------------------------------
+---
 
-## 📊 Evaluation Metrics
+## 📊 Métricas de Avaliação
 
--   MAE (Mean Absolute Error)\
--   MAPE (Mean Absolute Percentage Error)\
--   RMSE (Root Mean Squared Error)
+* MAE (Erro Absoluto Médio)
+* MAPE (Erro Percentual Absoluto Médio)
+* RMSE (Raiz do Erro Quadrático Médio)
 
-------------------------------------------------------------------------
+---
 
-## ⚙️ Technologies Used
+## ⚙️ Tecnologias Utilizadas
 
-### Programming Language
+### Linguagem de Programação
 
--   Python 3.11
+* Python 3.11
 
-### Data Science & Modeling
+### Ciência de Dados & Modelagem
 
--   numpy\
--   pandas\
--   scipy\
--   statsmodels\
--   pmdarima\
--   scikit-learn\
--   prophet\
--   neuralprophet\
--   tensorflow\
--   torch
+* numpy
+* pandas
+* scipy
+* statsmodels
+* pmdarima
+* scikit-learn
+* prophet
+* neuralprophet
+* tensorflow
+* torch
 
-### Visualization
+### Visualização
 
--   matplotlib\
--   seaborn\
--   plotly\
--   altair
+* matplotlib
+* seaborn
+* plotly
+* altair
 
-### Deployment
+### Deploy
 
--   streamlit\
--   streamlit-option-menu
+* streamlit
+* streamlit-option-menu
 
-------------------------------------------------------------------------
+---
 
-## 🚀 Running the Project Locally
+## 🚀 Executando o Projeto Localmente
 
-### 1️⃣ Clone the repository
+### 1️⃣ Clonar o repositório
 
-``` bash
+```bash
 git clone https://github.com/Luandutra01/Projeto-PrevisaoDemanda.git
 cd Projeto-PrevisaoDemanda
 ```
 
-### 2️⃣ Create virtual environment (recommended)
+### 2️⃣ Criar ambiente virtual (recomendado)
 
-``` bash
+```bash
 python -m venv venv
 source venv/bin/activate   # Linux/Mac
-venv\Scripts\activate    # Windows
+venv\Scripts\activate      # Windows
 ```
 
-### 3️⃣ Install dependencies
+### 3️⃣ Instalar dependências
 
-``` bash
+```bash
 pip install -r requirements.txt
 ```
 
-### 4️⃣ Run the application
+### 4️⃣ Executar a aplicação
 
-``` bash
+```bash
 streamlit run main.py
 ```
 
-------------------------------------------------------------------------
+---
 
-## 📈 Key Contributions
+## 📈 Principais Contribuições
 
--   Comparative study between statistical and deep learning forecasting
-    models\
--   Implementation of LSTM neural networks for time series\
--   Full preprocessing pipeline (cleaning, feature engineering,
-    scaling)\
--   Interactive dashboard for visualization and model comparison\
--   Reproducible research structure
+* Estudo comparativo entre modelos estatísticos e de deep learning para previsão
+* Implementação de redes neurais LSTM para séries temporais
+* Pipeline completo de pré-processamento (limpeza, engenharia de atributos, normalização)
+* Dashboard interativo para visualização e comparação de modelos
+* Estrutura de pesquisa reproduzível
 
-------------------------------------------------------------------------
+---
 
-## 🎓 Academic Context
+## 🎓 Contexto Acadêmico
 
-This project was developed as part of an undergraduate research
-initiative in Computer Science, focusing on time series forecasting and
-applied machine learning.
+Este projeto foi desenvolvido como parte de uma iniciativa de pesquisa
+de graduação em Ciência da Computação, com foco em previsão de séries
+temporais e machine learning aplicado.
 
-------------------------------------------------------------------------
+---
